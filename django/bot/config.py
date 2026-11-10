@@ -215,7 +215,7 @@ def build_config(env):
         tfpass=read_bool(env, 'TFPASS', 'test' not in sys.argv[1:2]),
         tfpass_visits=read_int(env, 'TFPASS_VISITS', 20),
         tfpass_price=read_str(env, 'TFPASS_PRICE_USD', '12.00'),
-        bot_whatsapp_number=re.sub('[^0-9]', '', read_str(env, 'BOT_WHATSAPP_NUMBER', '254182848213')),
+        bot_whatsapp_number=re.sub('[^0-9]', '', read_str(env, 'BOT_WHATSAPP_NUMBER')),
         gemini_api_key=read_str(env, 'GEMINI_API_KEY'),
         gemini_model=read_str(env, 'GEMINI_MODEL', 'gemini-3.8-flash'),
         refund_window_minutes=read_int(env, 'REFUND_WINDOW_MINUTES', 120),
