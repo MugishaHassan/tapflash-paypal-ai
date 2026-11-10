@@ -1,0 +1,21 @@
+node_modules/
+.env
+
+# WhatsApp login session: anyone with this folder can use the bot's WhatsApp
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Generated at runtime
+out/
+records/
+
+*.mp4
+
+# Downloaded map tiles and routes
+.cache/
+
+
+# Upload packages
+deploy/
+
+# Private hackathon notes (research about judges, plans): never public

@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TapFlash Pass</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #EFEAE2; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #111B21; padding: 16px; }
+  main { width: 100%; max-width: 400px; background: #fff; border-radius: 16px; padding: 24px 20px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  h1 { font-size: 22px; margin: 0 0 6px; } p { margin: 0 0 12px; color: #4a5568; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 16px 0; } dt { color: #667781; } dd { margin: 0; font-weight: 600; }
+  button { width: 100%; font: 700 17px system-ui, sans-serif; padding: 14px; border: 0; border-radius: 10px; background: #1C1E49; color: #fff; cursor: pointer; }
+  .ok { background: #E7F5EA; color: #116329; border-radius: 10px; padding: 12px; } .err { background: #FBE7E4; color: #B4372C; border-radius: 10px; padding: 10px 12px; }
+  small { display: block; margin-top: 12px; color: #667781; }
+</style></head><body><main>
+  <h1>TapFlash Pass</h1>
+  <p>{{ p.visits_total }} restroom visits with one PayPal payment. Each visit uses one; a refunded visit comes back to your pass.</p>
+  <dl><dt>Price</dt><dd>{{ p.currency }} {{ p.price }}</dd><dt>Per visit</dt><dd>{{ p.currency }} {{ per_visit }}</dd>{% if p.status == 'paid' %}<dt>Visits left</dt><dd>{{ p.visits_left }}</dd>{% endif %}</dl>
+  {% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+  {% if p.status == 'offered' %}<form method="post" action="/tfpass/{{ p.token }}/pay">{% csrf_token %}<button type="submit">Buy with PayPal</button></form>
+  {% else %}<p class="ok">Paid{% if p.capture_id %} with PayPal ({{ p.capture_id }}){% endif %}. Go back to the chat and choose <b>TapFlash Pass</b> when you pay.</p>{% endif %}
+  <small>{{ bot_name }}. Demo: PayPal sandbox, test money.</small>
+</main></body></html>

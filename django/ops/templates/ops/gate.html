@@ -1,0 +1,193 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C1E49">
+<title>{{ bot_name }} door check</title>
+<style>
+  :root { --ink: #1C1E49; --ink-soft: #4a5078; --sun: #79D3E7; --mist: #F2F6F8; --line: #D5E1E6;
+    --ok: #1B7F4B; --bad: #B4372C; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { min-height: 100vh; background: var(--ink); color: #fff; font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; }
+  header { padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px; }
+  header svg { width: 28px; height: 28px; flex: none; }
+  .where { flex: 1; min-width: 0; }
+  .where b { display: block; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .where small, .where select { color: #a9b0d6; font-size: 13px; }
+  .where select { background: transparent; border: 1px solid #3a3f78; border-radius: 8px; padding: 2px 6px; color: #fff; max-width: 100%; }
+  .where select.pick { display: block; width: 100%; font: 700 16px/1.3 system-ui, sans-serif; padding: 4px 6px; margin-bottom: 2px; }
+  .where small { display: block; }
+  .where select option { color: var(--ink); }
+  header form button { background: none; border: 1px solid #3a3f78; color: #d3d8ef; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; }
+
+  .scan { position: relative; margin: 0 16px; border-radius: 18px; overflow: hidden; background: #11122e; aspect-ratio: 1 / 1; max-height: 58vh; }
+  video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .frame { position: absolute; inset: 14%; border: 3px solid var(--sun); border-radius: 18px; box-shadow: 0 0 0 999px rgba(17,18,46,.5); pointer-events: none; }
+  .hint { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 14px; color: #d3d8ef; }
+  .nocam { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #d3d8ef;
+    background: #11122e; z-index: 1; }
+  .nocam[hidden] { display: none; }
+  .nocam button { margin-top: 12px; }
+
+  .manual { margin: 14px 16px 0; display: flex; gap: 8px; }
+  .manual input { flex: 1; min-width: 0; font: 700 22px/1 ui-monospace, monospace; letter-spacing: .2em; text-align: center;
+    padding: 12px; border-radius: 12px; border: 0; color: var(--ink); }
+  button.go { font: 700 17px system-ui, sans-serif; padding: 12px 18px; border: 0; border-radius: 999px; background: var(--sun); color: var(--ink); cursor: pointer; }
+  .today { margin: 14px 16px 24px; color: #a9b0d6; font-size: 14px; }
+
+  .result { position: fixed; inset: 0; display: none; flex-direction: column; justify-content: center; align-items: center;
+    padding: 24px; text-align: center; z-index: 10; }
+  .result.show { display: flex; }
+  .result.ok { background: var(--ok); }
+  .result.bad { background: var(--bad); }
+  .result .mark { width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.18); display: grid; place-items: center;
+    font-size: 56px; font-weight: 700; margin-bottom: 14px; }
+  .result h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.1; }
+  .result p { margin: 0 0 26px; font-size: 18px; max-width: 26ch; }
+  .result button { font: 700 18px system-ui, sans-serif; padding: 14px 28px; border-radius: 999px; border: 0; background: #fff; color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <img src="{% static 'ops/brand/tapflash-mark-light.svg' %}" alt="" width="28" height="28" style="width:28px;height:28px;flex:none">
+  <div class="where">
+    {% if restrooms %}
+      <select id="restroom" aria-label="Restroom" class="pick">
+        <option value="any"{% if not restroom %} selected{% endif %}>Any restroom (the pass says which)</option>
+        {% for r in restrooms %}<option value="{{ r.code }}"{% if restroom and r.pk == restroom.pk %} selected{% endif %}>{{ r.name }}</option>{% endfor %}
+      </select>
+      <small>Door check · {{ who }}</small>
+    {% else %}<b>{{ restroom.name }}</b><small>Door check · {{ who }}</small>{% endif %}
+  </div>
+  <form method="post" action="{% url 'gate-logout' %}">{% csrf_token %}<button type="submit">Log out</button></form>
+</header>
+
+<div class="scan">
+  <video id="video" playsinline muted></video>
+  <div class="frame" aria-hidden="true"></div>
+  <div class="hint" id="hint">Point at the visitor's access QR code</div>
+  <div class="nocam" id="nocam" hidden>
+    <div><div id="nocam-text">The camera is off.</div><button class="go" id="start" type="button">Turn on the camera</button></div>
+  </div>
+</div>
+
+<form class="manual" id="manual" autocomplete="off">
+  <input id="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="123456" aria-label="Or type the 6-digit code">
+  <button class="go" type="submit">Check</button>
+</form>
+<p class="today" id="today">Or type the 6-digit code from the visitor's chat.</p>
+
+<div class="result" id="result" role="alertdialog" aria-live="assertive" aria-labelledby="result-title">
+  <div class="mark" id="mark" aria-hidden="true">✓</div>
+  <h1 id="result-title">Let them in</h1>
+  <p id="result-detail"></p>
+  <button type="button" id="next">Scan the next visitor</button>
+</div>
+
+<script src="{{ jsqr }}"></script>
+<script>
+(() => {
+  'use strict';
+  const video = document.getElementById('video');
+  const hint = document.getElementById('hint');
+  const nocam = document.getElementById('nocam');
+  const result = document.getElementById('result');
+  const csrf = () => (document.cookie.match(/(?:^|; )csrftoken=([^;]+)/) || [])[1] || '';
+  let busy = false, stream = null, detector = null, admitted = 0;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  const select = document.getElementById('restroom');
+  if (select) select.addEventListener('change', () => { location.href = `?restroom=${encodeURIComponent(select.value)}`; });
+
+  async function check(payload) {
+    if (busy) return;
+    busy = true;
+    let data;
+    try {
+      const res = await fetch('{% url "gate-check" %}', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+        body: JSON.stringify(payload),
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) data = { ok: false, title: 'Try again', detail: data.error || `HTTP ${res.status}` };
+    } catch (err) {
+      data = { ok: false, title: 'No connection', detail: 'Check the internet connection and try again.' };
+    }
+    show(data);
+  }
+
+  function show(data) {
+    result.className = `result show ${data.ok ? 'ok' : 'bad'}`;
+    document.getElementById('mark').textContent = data.ok ? '✓' : '✕';
+    document.getElementById('result-title').textContent = data.title;
+    document.getElementById('result-detail').textContent = data.detail;
+    if (navigator.vibrate) navigator.vibrate(data.ok ? 120 : [80, 60, 80]);
+    if (data.ok) {
+      admitted += 1;
+      document.getElementById('today').textContent = `${admitted} visitor${admitted === 1 ? '' : 's'} let in on this phone.`;
+    }
+    document.getElementById('next').focus();
+  }
+
+  document.getElementById('next').addEventListener('click', () => {
+    result.className = 'result';
+    document.getElementById('code').value = '';
+    setTimeout(() => { busy = false; }, 600); // the same code still in front of the camera isn't read twice at once
+  });
+
+  document.getElementById('manual').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const code = document.getElementById('code').value.replace(/\D/g, '');
+    if (code.length !== 6) { show({ ok: false, title: 'Six digits', detail: 'The access code has 6 digits.' }); return; }
+    check({ code });
+  });
+
+  async function readFrame() {
+    if (!stream) return;
+    if (!busy && video.readyState >= 2) {
+      try {
+        let text = null;
+        if (detector) {
+          const codes = await detector.detect(video);
+          text = codes.length ? codes[0].rawValue : null;
+        } else if (window.jsQR) {
+          const w = canvas.width = Math.min(video.videoWidth, 640);
+          const h = canvas.height = Math.round(video.videoHeight * (w / video.videoWidth));
+          ctx.drawImage(video, 0, 0, w, h);
+          const found = window.jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+          text = found ? found.data : null;
+        }
+        if (text) check({ qr: text });
+      } catch (err) { /* a frame that can't be read: try the next one */ }
+    }
+    setTimeout(readFrame, 250);
+  }
+
+  async function startCamera() {
+    nocam.hidden = true;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      if ('BarcodeDetector' in window) {
+        try { detector = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (err) { detector = null; }
+      }
+      readFrame();
+    } catch (err) {
+      nocam.hidden = false;
+      document.getElementById('nocam-text').textContent =
+        'The camera could not start. Allow camera access, or type the code below.';
+    }
+  }
+  document.getElementById('start').addEventListener('click', startCamera);
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) startCamera();
+  else { nocam.hidden = false; document.getElementById('nocam-text').textContent = 'No camera here: type the code below.'; }
+})();
+</script>
+</body>
+</html>

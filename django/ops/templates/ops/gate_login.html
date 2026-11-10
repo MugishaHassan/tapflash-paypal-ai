@@ -1,0 +1,43 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ bot_name }} log in</title>
+<style>
+  :root { --ink: #1C1E49; --sun: #79D3E7; --mist: #F2F6F8; --line: #D5E1E6; --brick: #B4372C; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--ink);
+    color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { width: 100%; max-width: 380px; background: #fff; border-radius: 18px; padding: 28px 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; margin-bottom: 4px; }
+  .brand svg { width: 30px; height: 30px; }
+  p { margin: 0 0 18px; color: #4a5078; }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  input { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+  button { width: 100%; margin-top: 18px; font: 700 17px system-ui, sans-serif; padding: 14px; border: 0;
+    border-radius: 999px; background: var(--sun); color: var(--ink); cursor: pointer; }
+  .error { background: #F7E1DE; color: var(--brick); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <img src="{% static 'ops/brand/tapflash-mark.svg' %}" alt="" width="28" height="28" style="width:28px;height:28px;flex:none">
+    {{ bot_name }}
+  </div>
+  <p>{% if '/ops/' in request.GET.next %}Operators: log in to the dashboard.{% else %}Restroom attendants: log in to check visitors' access codes.{% endif %}</p>
+  {% if locked %}<div class="error" role="alert">Too many wrong passwords. Try again in 15 minutes.</div>
+  {% elif form.errors %}<div class="error" role="alert">That username and password don't match. Try again.</div>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.GET.next|default:'/gate/' }}">
+    <label for="id_username">Username</label>
+    <input id="id_username" name="username" autocomplete="username" autocapitalize="none" required>
+    <label for="id_password">Password</label>
+    <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+  </form>
+</main>
+</body>
+</html>

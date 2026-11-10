@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Income statement, {{ r.restroom }}</title>
+<style>
+  body { margin: 0; background: #f4f6f8; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #0b1f2c; }
+  main { max-width: 820px; margin: 24px auto; background: #fff; padding: 40px 44px; border: 1px solid #e3e7ea; border-radius: 12px; }
+  h1 { font-size: 24px; margin: 0; } h2 { font-size: 17px; margin: 28px 0 8px; }
+  .meta { color: #4b5d68; margin: 4px 0 20px; } table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #e3e7ea; } td.n, th.n { text-align: right; }
+  .box { background: #f7f8f9; border: 1px solid #e3e7ea; border-radius: 8px; padding: 12px 14px; }
+  .print { float: right; font: 600 14px system-ui; padding: 8px 14px; border-radius: 8px; border: 1px solid #d3d9dd; background: #fff; cursor: pointer; }
+  small { color: #7a8a93; } @media print { body { background: #fff; } main { border: 0; margin: 0; } .print { display: none; } }
+</style></head><body><main>
+  <button class="print" type="button" onclick="window.print()">Print or save as PDF</button>
+  <h1>Income statement</h1>
+  <p class="meta">{{ r.restroom }}{% if r.operator %}, run by {{ r.operator }}{% endif %}. Issued {{ today }} by {{ bot_name }}. Amounts in {{ r.currency }}.</p>
+  <div class="box"><b>Summary ({{ r.summary.by }}):</b> {{ r.summary.text }}</div>
+  <h2>Income by month</h2>
+  <table><tr><th>Month</th><th class="n">Paid visits</th><th class="n">Taken, after refunds</th><th class="n">Operator's share ({{ r.share }}%)</th></tr>
+  {% for m in r.months %}<tr><td>{{ m.month }}</td><td class="n">{{ m.visits }}</td><td class="n">{{ m.income }}</td><td class="n">{{ m.share }}</td></tr>{% empty %}<tr><td colspan="4">No paid visits yet.</td></tr>{% endfor %}</table>
+  <h2>Paid to the operator with PayPal Payouts</h2>
+  <table><tr><th>Date</th><th class="n">Amount</th><th>PayPal batch</th><th>Status</th></tr>
+  {% for p in r.payouts %}<tr><td>{{ p.date }}</td><td class="n">{{ p.currency }} {{ p.amount }}</td><td>{{ p.batch }}</td><td>{{ p.status }}</td></tr>{% empty %}<tr><td colspan="4">No payouts yet.</td></tr>{% endfor %}</table>
+  <h2>Checked against PayPal</h2>
+  <p>{% if r.paypal.ok %}{{ r.paypal.source }}: {{ r.paypal.count }} transactions on the TapFlash PayPal account, {{ r.currency }} {{ r.paypal.in }} received.{% else %}{{ r.paypal.note }}{% endif %}</p>
+  <p><small>A record of income taken through PayPal for this restroom. It can support a loan or SACCO application; the lender decides how to use it. Demo data runs in the PayPal sandbox.</small></p>
+</main></body></html>

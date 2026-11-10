@@ -1,0 +1,171 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ bot_name }} for judges</title>
+<style>
+  :root { --ink: #0b1f2c; --ink-2: #4b5d68; --ink-3: #7a8a93; --navy: #1C1E49; --sun: #79D3E7; --sun-deep: #2A9BB8;
+    --paper: #f5f6f8; --card: #ffffff; --line: #e2e5ea; --good: #0ca30c; color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  :focus-visible { outline: 3px solid var(--sun-deep); outline-offset: 3px; border-radius: 6px; }
+  .bar { background: var(--navy); color: #fff; }
+  .bar .wrap { display: flex; align-items: center; gap: 10px; padding: 12px 24px; font-weight: 700; }
+  .bar img { width: 26px; height: 26px; }
+  .bar span.tag { margin-left: auto; font-weight: 500; font-size: 14px; color: #a9b0d6; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+  .intro { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; align-items: center; padding: 48px 0 40px; }
+  h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -.02em; font-weight: 600; color: var(--navy); }
+  .intro p { margin: 0 0 14px; color: var(--ink-2); max-width: 56ch; font-size: 17px; }
+  .live { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--ink-2); margin: 18px 0 0; padding: 0; list-style: none; }
+  .live li { display: flex; align-items: center; gap: 7px; }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+  .live i.on { background: var(--good); }
+  .phone { border-radius: 32px; background: #15162e; padding: 8px; box-shadow: 0 8px 24px rgba(10,20,40,.12); }
+  .phone img { display: block; width: 100%; height: 540px; object-fit: cover; object-position: top; border-radius: 24px; }
+
+  .buyer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; background: #ecf8fb; border: 1px solid #bfe8f2;
+    border-radius: 12px; padding: 12px 16px; margin: 4px 0 8px; font-size: 15px; }
+  .buyer b { margin-right: 4px; font-weight: 600; width: 100%; }
+  .creds { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: center; margin: 0; }
+  .creds dt { color: var(--ink-2); font-size: 14px; }
+  .creds dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .cred { font: 600 14.5px ui-monospace, Menlo, monospace; background: #fff; border: 1px solid #bfe8f2; border-radius: 7px; padding: 3px 8px; user-select: all; }
+
+  .tour { display: grid; gap: 28px; padding: 8px 0 32px; }
+  .stop { display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1.05fr); gap: 24px; align-items: start;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+  .n { font: 500 15px/28px system-ui, sans-serif; color: var(--navy); width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--navy); text-align: center; font-variant-numeric: tabular-nums; }
+  .stop h2 { margin: 0 0 8px; font-size: 21px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+  .stop ol { margin: 0 0 18px; padding-left: 20px; color: var(--ink-2); display: grid; gap: 6px; }
+  .stop code { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 14px; color: var(--ink); }
+  .shot { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--paper); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot.narrow { max-width: 280px; justify-self: center; align-self: center; border-radius: 16px; }
+  .stop.wide { grid-template-columns: 28px minmax(0, 1fr); }
+  .stop.wide .shot { grid-column: 2; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font: 600 15px system-ui, sans-serif; padding: 12px 20px; border-radius: 8px;
+    background: var(--sun); color: var(--navy); text-decoration: none; border: 0; cursor: pointer; }
+  .btn:hover { background: #5CC4DC; }
+  .btn small { font-weight: 400; font-size: 13px; }
+
+  .why { padding: 8px 0 32px; max-width: 72ch; }
+  .why h2 { font-size: 21px; font-weight: 600; margin: 0 0 8px; }
+  .why p { margin: 0 0 12px; color: var(--ink-2); }
+  .why a { color: var(--ink); }
+  .real { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 4px 0 40px; }
+  .real div { border-top: 1px solid var(--line); padding-top: 16px; }
+  .real h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .real p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  footer { border-top: 1px solid var(--line); color: var(--ink-3); font-size: 14px; padding: 18px 0 40px; }
+  footer a { color: inherit; }
+  @media (max-width: 860px) {
+    .intro { grid-template-columns: 1fr; gap: 28px; padding-top: 32px; }
+    .phone { max-width: 260px; margin: 0 auto; transform: none; }
+    .stop { grid-template-columns: 1fr; padding: 20px; }
+    .real { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"><div class="wrap">
+  <img src="{% static 'ops/brand/tapflash-mark-light.svg' %}" alt="" width="26" height="26">
+  <span><span style="color:#79D3E7">Tap</span>Flash</span><span class="tag">PayPal AI Hackathon</span>
+</div></div>
+
+<div class="wrap">
+  <section class="intro">
+    <div>
+      <h1>Try TapFlash in five minutes</h1>
+      <p>In Nairobi, a clean public restroom that is open when you need it is hard to find, and the people who keep restrooms clean are often paid late, in cash. TapFlash is a WhatsApp bot that finds the restroom, takes the payment with PayPal, refunds failed visits, and pays operators and cleaners as soon as their work is approved.</p>
+      <p>Everything below runs live on this server. Do the three stops in order. Stop 1 is two separate visits, because one payment can only end one way: either the door opens and the hold is charged, or the visit fails and the hold is released.</p>
+      <div class="buyer">
+        <b>PayPal sandbox buyer, for stop 1</b>
+        {% if buyer_email %}<dl class="creds">
+          <dt>Email</dt><dd><span class="cred">{{ buyer_email }}</span></dd>
+          {% if buyer_password %}<dt>Password</dt><dd><span class="cred">{{ buyer_password }}</span></dd>{% endif %}
+        </dl>{% else %}<span>in the Devpost testing instructions</span>{% endif %}
+      </div>
+      <ul class="live">
+        <li><i class="{% if paypal_on %}on{% endif %}"></i>PayPal {% if paypal_on %}sandbox: real API calls, test money{% else %}not connected{% endif %}</li>
+        <li><i class="{% if ai_on %}on{% endif %}"></i>Google Gemini {% if ai_on %}connected{% else %}off{% endif %}</li>
+        {% if whatsapp %}<li><i class="on"></i>Also on WhatsApp: <a href="https://wa.me/{{ whatsapp }}">+{{ whatsapp }}</a></li>{% endif %}
+      </ul>
+    </div>
+    <div class="phone"><img src="{% static 'ops/judges/chat.jpg' %}" alt="The TapFlash chat: a request in Swahili answered with four nearby restrooms, with photos, distance and price" width="430" height="856"></div>
+  </section>
+
+  <div class="tour">
+    <section class="stop">
+      <div class="n">1</div>
+      <div>
+        <h2>Two visits: one works, one fails</h2>
+        <p><b>Visit 1: the door opens.</b></p>
+        <ol>
+          <li>In the chat, type <code>Niko Kencom, nataka choo safi</code>: Swahili for "I'm at Kencom, I want a clean toilet". Gemini understands and answers in Swahili.</li>
+          <li>Pick a restroom, then <b>Pay</b> and <b>PayPal</b>. Log in with the sandbox buyer above. PayPal holds the money; it is not charged yet.</li>
+          <li>The receipt, the walking route and the access QR code arrive in the chat.</li>
+          <li>Open the door check (stop 2) and scan that QR code, or type its 6-digit code. Press <b>Let them in</b>: PayPal now takes the held payment.</li>
+          <li>Scan the same code again: it says <b>Already used</b>.</li>
+        </ol>
+        <p><b>Visit 2: the door is locked.</b></p>
+        <ol>
+          <li>Start a new visit and pay again, the same way. Do not scan this one.</li>
+          <li>Write <code>The door was locked</code>. Gemini reviews it and the code releases the hold: you are never charged.</li>
+        </ol>
+        <a class="btn" href="/" target="_blank" rel="noopener">Open the chat</a>
+      </div>
+      <div class="shot"><img src="{% static 'ops/judges/pay.jpg' %}" alt="The chat after choosing PayPal: the amount in shillings and dollars and the PayPal sandbox payment link" width="430" height="856" style="max-height:440px;object-fit:cover;object-position:50% 72%"></div>
+    </section>
+
+    <section class="stop">
+      <div class="n">2</div>
+      <div>
+        <h2>Walk in: the attendant scans you</h2>
+        <ol>
+          <li>Open the door check on a phone (no password).</li>
+          <li>Use it on visit 1 of stop 1: scan the QR code or type the 6-digit code, press "Let them in".</li>
+          <li>Scan it again: "Already used", so a shared screenshot doesn't get a second person in. Do not scan visit 2: that hold was released, and the door check would say so.</li>
+        </ol>
+        {% if one_click %}<form method="post" action="{% url 'judge-enter' 'gate' %}">{% csrf_token %}<button class="btn" type="submit">Open the door check</button></form>
+        {% else %}<a class="btn" href="/gate/">Open the door check</a>{% endif %}
+      </div>
+      <div class="shot narrow"><img src="{% static 'ops/judges/door.jpg' %}" alt="The door check on the attendant's phone: Let them in" width="420" height="165"></div>
+    </section>
+
+    <section class="stop wide">
+      <div class="n">3</div>
+      <div>
+        <h2>Run it as the operator</h2>
+        <ol>
+          <li>Your two visits: one charged after the door check, one released after your complaint, with Gemini's review.</li>
+          <li>Tick restroom operators and pay their share with <b>PayPal Payouts</b>.</li>
+          <li>Under Cleaning bonuses, approve a cleaner's photo: PayPal pays them at once.</li>
+          <li>Back in the chat, search again: that restroom now says <b>cleaned 1 min ago</b> and comes first when you ask for the cleanest. The cleaner's checked work is what the next visitor sees.</li>
+        </ol>
+        {% if one_click %}<form method="post" action="{% url 'judge-enter' 'ops' %}">{% csrf_token %}<button class="btn" type="submit">Open the dashboard</button></form>
+        {% else %}<a class="btn" href="/ops/">Open the dashboard</a>{% endif %}
+      </div>
+      <div class="shot"><img src="{% static 'ops/judges/dashboard.jpg' %}" alt="The operators' dashboard: money owed, with a Pay everyone with PayPal button, and what needs a decision" width="1100" height="315"></div>
+    </section>
+  </div>
+
+  <section class="why" aria-labelledby="why-title">
+    <h2 id="why-title">Why it matters</h2>
+    <p>In January 2026 the US CDC reported that public toilets in Kenya that are not cleaned well spread diarrhoeal illness and worsen cholera and mpox outbreaks. It found high turnover and low morale among cleaners, and skipped disinfection, and what worked was checking the work and giving feedback (<a href="https://www.cdc.gov/global-health/impact/clean-public-toilets-in-kenya.html">CDC</a>). Where private operators ran Nairobi's public toilets, each served 500 to 1,000 visitors a day (<a href="https://bdd.pseau.org/outils/ouvrages/wsp_management_public_toilets_nairobi.pdf">World Bank WSP</a>).</p>
+    <p>In Kampala, a busy public toilet takes up to Shs120,000 on a good day, in cash and with no record (<a href="https://www.monitor.co.ug/uganda/lifestyle/reviews-profiles/a-day-as-a-public-toilet-attendant-1530712">Daily Monitor</a>). TapFlash turns that into PayPal payments with a record an operator can show a bank.</p>
+    <p>TapFlash checks every cleaning with a photo, pays the cleaner at once with PayPal, and shows the next visitor that the restroom was just cleaned.</p>
+  </section>
+
+  <section class="real" aria-label="What is real in this demo">
+    <div><h3>Real</h3><p>PayPal Orders, Refunds, Payouts and webhooks (sandbox), Google Gemini, the WhatsApp bot, the QR door check.</p></div>
+    <div><h3>Test money</h3><p>PayPal runs in its sandbox, as the hackathon asks. Going live is a settings change, not a code change.</p></div>
+    <div><h3>Sample data</h3><p>The five Nairobi restrooms and their operators are examples. Payments, refunds and payouts you make here are real sandbox ones.</p></div>
+  </section>
+
+  <footer>Built by Hassan Mugisha in Kampala for the PayPal AI Hackathon. The source code and setup instructions are in the GitHub repository linked from the submission.</footer>
+</div>
+</body>
+</html>

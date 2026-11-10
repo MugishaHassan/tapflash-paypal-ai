@@ -1,0 +1,12 @@
+Sample photos for the demo restrooms, from Wikimedia Commons. Replace them
+with real restroom photos (upload a photo per restroom in the admin).
+
+1.jpg  Men's restroom in Florida Aquarium, Tampa (CC0)
+2.jpg  Restroom in Torp shopping mall, Uddevalla (CC BY-SA 4.0)
+3.jpg  TargetRestroom.jpg (CC BY-SA 4.0), cropped to leave out the store's signs
+4.jpg  DSCF0429 tiled public restroom behind a turnstile (CC BY-SA 4.0)
+5.jpg  2.jpg mirrored (CC BY-SA 4.0), in place of a photo that showed a venue's logo
+6.jpg  Interior view of restroom, Ellsworth Air Force Base, HABS SD-21-U-14 (public domain)
+
+Sources: https://commons.wikimedia.org/wiki/File:<name>; CC BY-SA photos are
+used under that licence, credit to their Wikimedia Commons authors.

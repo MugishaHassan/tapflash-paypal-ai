@@ -1,0 +1,100 @@
+<!-- TapFlash chat wallpaper: one seamless 440x440 tile of original line doodles
+     (restroom door, tap, soap, map pin, walking route, QR code, banknote, coins,
+     broom, leaf, toilet roll, bucket, camera, receipt, clock, bus, phone, map).
+     chat.html inlines this file as a data: URI on .app, because the page's
+     Content-Security-Policy only allows data: and blob: images. -->
+<svg xmlns='http://www.w3.org/2000/svg' width='440' height='440' viewBox='0 0 440 440'>
+<defs>
+<g id='broom'><path d='M16 3v13M12.6 16h6.8v2.6h-6.8zM12.6 18.6 9.4 28.5h13.2l-3.2-9.9M13.8 22.2l-1 6.3M16 22.2v6.3M18.2 22.2l1 6.3'/></g>
+<g id='bubbles'><circle cx='12.5' cy='18.5' r='6'/><circle cx='22' cy='10.5' r='3.6'/><circle cx='23.5' cy='22.5' r='2.2'/><path d='M9.4 16.8a3.6 3.6 0 0 1 2.2-2.4'/></g>
+<g id='bucket'><path d='M7.5 12.5h17l-2.3 15H9.8zM7.5 12.5C7.5 5 24.5 5 24.5 12.5M10 16.5h12'/></g>
+<g id='bus'><path d='M4 21.5V11a2.5 2.5 0 0 1 2.5-2.5h19A2.5 2.5 0 0 1 28 11v10.5zM4 21.5h3.2M12 21.5h8M24.8 21.5H28M7 12h4.2v4H7zM13.6 12h4.2v4h-4.2zM24.2 12v9.5'/><circle cx='9.6' cy='22.4' r='2.4'/><circle cx='22.4' cy='22.4' r='2.4'/></g>
+<g id='camera'><path d='M5 12.5a2 2 0 0 1 2-2h4.2l1.8-3h6l1.8 3H25a2 2 0 0 1 2 2V24a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z'/><circle cx='16' cy='18' r='4.6'/><path d='M22.6 14h1.2'/></g>
+<g id='chat'><path d='M6.5 7h19a2.5 2.5 0 0 1 2.5 2.5v10a2.5 2.5 0 0 1-2.5 2.5H13l-5.5 4.5V22h-1A2.5 2.5 0 0 1 4 19.5v-10A2.5 2.5 0 0 1 6.5 7z'/><g fill='currentColor' stroke='none'><circle cx='11' cy='14.5' r='1.3'/><circle cx='16' cy='14.5' r='1.3'/><circle cx='21' cy='14.5' r='1.3'/></g></g>
+<g id='clock'><circle cx='16' cy='16' r='10.5'/><path d='M16 9.5V16l4.2 2.8'/></g>
+<g id='door'><path d='M9 28V4h14v24M6 28h20M9 4l8 2.6v23.1L9 28'/><path d='M14.6 16.4v1.6'/></g>
+<g id='drop'><path d='M16 4.5s-7.5 9-7.5 14.4a7.5 7.5 0 0 0 15 0C23.5 13.5 16 4.5 16 4.5z'/><path d='M12.3 19.4a3.8 3.8 0 0 0 3.2 3.4'/></g>
+<g id='leaf'><path d='M6.5 25.5C6.5 14 13.5 6.8 26 6c0 12.4-7.2 19.5-19.5 19.5zM6.5 25.5c4.4-6.1 9-10.6 14.2-13.8M11.4 18.4l-.4-4.2M14.6 15.6l4.3.2'/></g>
+<g id='map'><path d='M4.5 8.5 11 6l10 2.5L27.5 6v17.5L21 26l-10-2.5-6.5 2.5zM11 6v17.5M21 8.5V26'/></g>
+<g id='note'><rect x='3.5' y='9' width='25' height='14' rx='2'/><circle cx='16' cy='16' r='3.6'/><path d='M7.5 13v.01M24.5 19v.01'/></g>
+<g id='phone'><rect x='9.5' y='3.5' width='13' height='25' rx='2.6'/><path d='M14.5 25.2h3'/><rect x='12.6' y='9' width='6.8' height='6.8' rx='.8'/><path d='M12.6 19.5h2M16.2 19.5h3.2'/></g>
+<g id='pin'><path d='M16 28.5s-8.5-7.6-8.5-14a8.5 8.5 0 0 1 17 0c0 6.4-8.5 14-8.5 14z'/><circle cx='16' cy='14.5' r='3.2'/></g>
+<g id='qr'><rect x='5' y='5' width='22' height='22' rx='3'/><rect x='8.5' y='8.5' width='5.5' height='5.5' rx='.8'/><rect x='18' y='8.5' width='5.5' height='5.5' rx='.8'/><rect x='8.5' y='18' width='5.5' height='5.5' rx='.8'/><g fill='currentColor' stroke='none'><rect x='18' y='18' width='2.2' height='2.2'/><rect x='21.4' y='21.4' width='2.2' height='2.2'/><rect x='18' y='21.6' width='2.2' height='2.2'/></g></g>
+<g id='receipt'><path d='M9 4h14v24l-2.3-1.6-2.3 1.6-2.4-1.6-2.4 1.6-2.3-1.6L9 28zM12.5 10h7M12.5 14h7M12.5 18h4.2'/></g>
+<g id='roll'><ellipse cx='10' cy='12.5' rx='4.5' ry='7.5'/><ellipse cx='10' cy='12.5' rx='1.5' ry='2.6'/><path d='M10 5h11.5a4.5 7.5 0 0 1 0 15H10v7.5h11.5V20'/><path d='M10 23.8h11.5' stroke-dasharray='1.2 2.2'/></g>
+<g id='route'><path d='M6 27c6-1 5-8 11-9s8 3 13-1 6-10 12-11' stroke-dasharray='0 4.2'/><circle cx='6' cy='27' r='2'/><circle cx='42' cy='6' r='2.6'/></g>
+<g id='soap'><path d='M11 15.5a2.5 2.5 0 0 1 2.5-2.5h5a2.5 2.5 0 0 1 2.5 2.5V26a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2zM13.5 13v-2.6h5V13M16 10.4V6M18.2 6H11v1.6M14 19.5h4M14 22.5h2.5'/><circle cx='24.5' cy='8.5' r='1.8'/><circle cx='26.8' cy='13' r='1'/></g>
+<g id='sprout'><path d='M16 28.5V15M16 18.5c-6.2 0-9.4-3.6-9.4-9.4 5.8 0 9.4 3.2 9.4 9.4zM16 15.2c0-5.2 3.1-8.6 9.4-8.6 0 5.4-3.2 8.6-9.4 8.6zM16 28.5h-4.5M16 28.5h4.5'/></g>
+<g id='stack'><ellipse cx='16' cy='11' rx='8.5' ry='3.2'/><path d='M7.5 11v11c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2V11M7.5 14.7c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2M7.5 18.4c0 1.8 3.8 3.2 8.5 3.2s8.5-1.4 8.5-3.2'/></g>
+<g id='tap'><path d='M5 9v8M5 11h11a6 6 0 0 1 6 6v2.2M5 15h10a3 3 0 0 1 3 3v1.2M18 19.2h4M12 11V7M9.2 7h5.6'/><path d='M20 23.6s-1.7 2.1-1.7 3.2a1.7 1.7 0 0 0 3.4 0c0-1.1-1.7-3.2-1.7-3.2z'/></g>
+</defs>
+<g color='#D6CFC3' fill='none' stroke='currentColor' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'>
+  <use href='#bubbles' transform='translate(142.5 66.4) rotate(-11) scale(1.24) translate(-16 -16)'/>
+  <use href='#door' transform='translate(286.4 31.9) rotate(-8) scale(1.40) translate(-16 -16)'/>
+  <use href='#bus' transform='translate(235.8 160.9) rotate(-31) scale(1.37) translate(-16 -16)'/>
+  <use href='#pin' transform='translate(25.5 223.3) rotate(-13) scale(1.18) translate(-16 -16)'/>
+  <use href='#tap' transform='translate(30.7 39.9) rotate(18) scale(1.42) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(186.8 363.8) rotate(17) scale(1.37) translate(-16 -16)'/>
+  <use href='#receipt' transform='translate(54.5 98.2) rotate(-32) scale(1.26) translate(-16 -16)'/>
+  <use href='#bucket' transform='translate(276.1 417.0) rotate(32) scale(1.27) translate(-16 -16)'/>
+  <use href='#map' transform='translate(377.7 127.4) rotate(-14) scale(1.40) translate(-16 -16)'/>
+  <use href='#broom' transform='translate(135.7 359.1) rotate(5) scale(1.37) translate(-16 -16)'/>
+  <use href='#roll' transform='translate(79.5 255.9) rotate(1) scale(1.31) translate(-16 -16)'/>
+  <use href='#stack' transform='translate(299.4 188.1) rotate(-6) scale(1.23) translate(-16 -16)'/>
+  <use href='#phone' transform='translate(138.2 257.6) rotate(30) scale(1.31) translate(-16 -16)'/>
+  <use href='#camera' transform='translate(349.5 307.6) rotate(-9) scale(1.36) translate(-16 -16)'/>
+  <use href='#qr' transform='translate(321.0 126.7) rotate(6) scale(1.22) translate(-16 -16)'/>
+  <use href='#soap' transform='translate(17.3 294.0) rotate(30) scale(1.22) translate(-16 -16)'/>
+  <use href='#soap' transform='translate(457.3 294.0) rotate(30) scale(1.22) translate(-16 -16)'/>
+  <use href='#leaf' transform='translate(336.4 252.1) rotate(-32) scale(1.32) translate(-16 -16)'/>
+  <use href='#route' transform='translate(369.6 -24.3) rotate(22) scale(1.51) translate(-24 -16)'/>
+  <use href='#route' transform='translate(369.6 415.7) rotate(22) scale(1.51) translate(-24 -16)'/>
+  <use href='#note' transform='translate(208.6 292.2) rotate(-5) scale(1.35) translate(-16 -16)'/>
+  <use href='#drop' transform='translate(122.5 182.7) rotate(-32) scale(1.41) translate(-16 -16)'/>
+  <use href='#clock' transform='translate(-18.6 66.4) rotate(23) scale(1.34) translate(-16 -16)'/>
+  <use href='#clock' transform='translate(421.4 66.4) rotate(23) scale(1.34) translate(-16 -16)'/>
+  <use href='#chat' transform='translate(259.2 115.6) rotate(30) scale(1.36) translate(-16 -16)'/>
+  <use href='#chat' transform='translate(395.8 343.2) rotate(-26) scale(1.27) translate(-16 -16)'/>
+  <use href='#route' transform='translate(172.6 175.6) rotate(37) scale(1.52) translate(-24 -16)'/>
+  <use href='#bucket' transform='translate(44.6 160.0) rotate(-29) scale(1.19) translate(-16 -16)'/>
+  <use href='#bus' transform='translate(11.2 384.7) rotate(16) scale(1.38) translate(-16 -16)'/>
+  <use href='#bus' transform='translate(451.2 384.7) rotate(16) scale(1.38) translate(-16 -16)'/>
+  <use href='#camera' transform='translate(150.8 116.5) rotate(4) scale(1.37) translate(-16 -16)'/>
+  <use href='#phone' transform='translate(364.7 71.0) rotate(-1) scale(1.29) translate(-16 -16)'/>
+  <use href='#soap' transform='translate(232.4 64.5) rotate(-20) scale(1.21) translate(-16 -16)'/>
+  <use href='#pin' transform='translate(239.0 11.9) rotate(2) scale(1.28) translate(-16 -16)'/>
+  <use href='#pin' transform='translate(239.0 451.9) rotate(2) scale(1.28) translate(-16 -16)'/>
+  <use href='#qr' transform='translate(73.5 339.7) rotate(-8) scale(1.38) translate(-16 -16)'/>
+  <use href='#receipt' transform='translate(234.3 342.8) rotate(-31) scale(1.30) translate(-16 -16)'/>
+  <use href='#leaf' transform='translate(156.4 12.8) rotate(37) scale(1.26) translate(-16 -16)'/>
+  <use href='#leaf' transform='translate(156.4 452.8) rotate(37) scale(1.26) translate(-16 -16)'/>
+  <use href='#map' transform='translate(114.0 304.7) rotate(-8) scale(1.31) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(-19.1 196.8) rotate(34) scale(1.38) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(420.9 196.8) rotate(34) scale(1.38) translate(-16 -16)'/>
+  <use href='#bubbles' transform='translate(369.8 211.0) rotate(25) scale(1.26) translate(-16 -16)'/>
+  <use href='#drop' transform='translate(287.3 351.8) rotate(-36) scale(1.40) translate(-16 -16)'/>
+  <use href='#tap' transform='translate(220.7 234.0) rotate(-8) scale(1.26) translate(-16 -16)'/>
+  <use href='#stack' transform='translate(96.6 -20.9) rotate(24) scale(1.41) translate(-16 -16)'/>
+  <use href='#stack' transform='translate(96.6 419.1) rotate(24) scale(1.41) translate(-16 -16)'/>
+  <use href='#note' transform='translate(2.2 116.2) rotate(-10) scale(1.37) translate(-16 -16)'/>
+  <use href='#note' transform='translate(442.2 116.2) rotate(-10) scale(1.37) translate(-16 -16)'/>
+  <use href='#door' transform='translate(392.5 276.0) rotate(-26) scale(1.35) translate(-16 -16)'/>
+  <use href='#clock' transform='translate(275.5 299.5) rotate(36) scale(1.39) translate(-16 -16)'/>
+  <use href='#roll' transform='translate(84.7 39.9) rotate(-17) scale(1.35) translate(-16 -16)'/>
+  <use href='#broom' transform='translate(337.3 17.9) rotate(21) scale(1.19) translate(-16 -16)'/>
+  <use href='#broom' transform='translate(337.3 457.9) rotate(21) scale(1.19) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(-25.0 10.7) rotate(17) scale(1.41) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(-25.0 450.7) rotate(17) scale(1.41) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(415.0 10.7) rotate(17) scale(1.41) translate(-16 -16)'/>
+  <use href='#sprout' transform='translate(415.0 450.7) rotate(17) scale(1.41) translate(-16 -16)'/>
+  <use href='#roll' transform='translate(298.5 81.5) rotate(25) scale(1.35) translate(-16 -16)'/>
+  <use href='#bus' transform='translate(221.0 404.8) rotate(-33) scale(1.27) translate(-16 -16)'/>
+  <use href='#drop' transform='translate(44.8 -16.6) rotate(18) scale(1.32) translate(-16 -16)'/>
+  <use href='#drop' transform='translate(44.8 423.4) rotate(18) scale(1.32) translate(-16 -16)'/>
+  <use href='#map' transform='translate(346.8 369.1) rotate(28) scale(1.41) translate(-16 -16)'/>
+  <use href='#broom' transform='translate(93.8 132.0) rotate(36) scale(1.37) translate(-16 -16)'/>
+  <use href='#soap' transform='translate(284.3 241.5) rotate(29) scale(1.21) translate(-16 -16)'/>
+  <use href='#clock' transform='translate(201.5 104.1) rotate(11) scale(1.28) translate(-16 -16)'/>
+  <use href='#stack' transform='translate(73.4 204.0) rotate(22) scale(1.24) translate(-16 -16)'/>
+</g>
+</svg>

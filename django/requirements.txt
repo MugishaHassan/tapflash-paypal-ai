@@ -1,0 +1,11 @@
+# Pinned for Linux, Python 3.11 (cPanel "Setup Python App"). The server CPU
+# has no x86-64-v2, so only packages with plain manylinux x86_64 wheels or
+# pure Python. If Pillow ever fails to load there, the bot runs text only.
+Django==5.2.18
+Pillow==13.0.0
+qrcode[pil]==8.2
+requests==2.34.2
+PyMySQL==1.2.3
+python-dotenv==1.2.4
+whitenoise==6.12.0
+tzdata==2026.5

@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#075E54">
+<title>TapFlash test chat</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%230A2F44'/%3E%3Cpath fill='%23FFC629' d='M13.4 3.5 6.2 13.2h5l-1 7.3 7.6-10.1h-5.1z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+  /* WhatsApp's own chat colours, pinned by the brief; TapFlash adds ink, flash, mist and slate. */
+  :root {
+    --wall: #EFEAE2;
+    --bot: #FFFFFF;
+    --me: #D9FDD3;
+    --bar: #075E54;
+    --link: #027EB5;
+    --ink: #0A2F44;
+    --flash: #FFC629;
+    --mist: #DDE8EC;
+    --slate: #5B6C75;
+    --text: #111B21;
+    --hair: #E3E8EA;
+    --page: #D1D7DB;
+    --read: #53BDEB;
+    --fail: #D3263A;
+    --lift: 0 1px .5px rgba(11, 20, 26, .13);
+    --float: 0 2px 5px rgba(11, 20, 26, .22), 0 8px 24px rgba(11, 20, 26, .14);
+    --sign: "Barlow Semi Condensed", "Bahnschrift SemiCondensed", Bahnschrift, "Arial Narrow", sans-serif;
+    --ui: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --wide: 340px;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--wall);
+    color: var(--text);
+    font: 15px/1.4 var(--ui);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  svg { display: block; }
+
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .msg :focus-visible, .pop :focus-visible, .sheet :focus-visible { outline-offset: -3px; }
+  .bar :focus-visible, #viewer :focus-visible { outline-color: #FFFFFF; }
+
+  /* ------------------------------------------------------------ frame */
+  .app {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--wall);
+    overflow: hidden;
+  }
+  @media (min-width: 600px) {
+    /* The gap above the frame is body padding: a top margin on .app would
+       collapse through body and make the whole page scroll. */
+    body { background: var(--page); padding-top: 19px; }
+    body::before { content: ""; position: fixed; inset: 0 0 auto; height: 127px; background: var(--bar); }
+    .app {
+      width: 480px;
+      margin: 0 auto;
+      height: calc(100vh - 38px);
+      height: calc(100dvh - 38px);
+      box-shadow: 0 6px 18px rgba(11, 20, 26, .08);
+    }
+  }
+
+  /* ------------------------------------------------------------ header */
+  .bar {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 60px;
+    padding: 8px 4px 8px 12px;
+    background: var(--bar);
+    color: #FFFFFF;
+  }
+  .avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  .avatar svg { width: 24px; height: 24px; }
+  .who { flex: 1; min-width: 0; }
+  .name { margin: 0; font: 700 20px/1.1 var(--sign); letter-spacing: .01em; }
+  .sub {
+    margin: 1px 0 0;
+    font-size: 13px;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, .8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .iconbtn {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+  .iconbtn svg { width: 22px; height: 22px; }
+  @media (hover: hover) { .bar .iconbtn:hover { background: rgba(255, 255, 255, .12); } }
+
+  .pop {
+    position: absolute;
+    top: 54px;
+    right: 8px;
+    min-width: 214px;
+    padding: 6px 0;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--text);
+    box-shadow: var(--float);
+  }
+  .pop button {
+    display: block;
+    width: 100%;
+    padding: 11px 20px;
+    border: 0;
+    background: transparent;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .pop button:focus-visible { background: #F0F2F5; }
+  @media (hover: hover) { .pop button:hover { background: #F0F2F5; } }
+  .pop .sep { height: 1px; margin: 6px 0; background: var(--hair); }
+
+  /* ------------------------------------------------------------ chat */
+  #chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+  #chat:focus { outline: none; }
+
+  .day {
+    align-self: center;
+    margin: 8px 0 6px;
+    padding: 5px 12px 6px;
+    border-radius: 7.5px;
+    background: #FFFFFF;
+    color: var(--slate);
+    font-size: 12.5px;
+    box-shadow: var(--lift);
+  }
+
+  .note {
+    align-self: center;
+    max-width: calc(100% - 64px);
+    margin: 10px 0 4px;
+    padding: 7px 12px 8px;
+    border-radius: 7.5px;
+    background: var(--mist);
+    color: var(--ink);
+    font-size: 13.5px;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: var(--lift);
+  }
+
+  .empty {
+    align-self: center;
+    margin: auto 32px;
+    padding: 14px 16px 16px;
+    border-radius: 10px;
+    background: var(--mist);
+    color: var(--ink);
+    text-align: center;
+    box-shadow: var(--lift);
+  }
+  .empty p { margin: 0 0 12px; font-size: 15px; }
+  .empty button {
+    min-height: 44px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 22px;
+    background: var(--ink);
+    color: #FFFFFF;
+    font: 600 17px/1 var(--sign);
+    cursor: pointer;
+  }
+
+  /* bubbles */
+  .msg {
+    position: relative;
+    max-width: calc(100% - 72px);
+    margin: 2px 16px 0;
+    padding: 6px 8px 7px 9px;
+    border-radius: 7.5px;
+    box-shadow: var(--lift);
+    overflow-wrap: anywhere;
+  }
+  .msg.first { margin-top: 10px; }
+  .msg.bot { align-self: flex-start; background: var(--bot); }
+  .msg.me { align-self: flex-end; background: var(--me); }
+  .msg.first::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 8px;
+    height: 13px;
+    background: inherit;
+  }
+  .msg.bot.first { border-top-left-radius: 0; }
+  .msg.bot.first::before { left: -8px; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+  .msg.me.first { border-top-right-radius: 0; }
+  .msg.me.first::before { right: -8px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+
+  .txt { display: flow-root; white-space: pre-wrap; }
+  .txt b { font-weight: 600; }
+  .txt a { color: var(--link); text-decoration: none; }
+  .txt a:hover { text-decoration: underline; }
+
+  /* Sits at the end of the last line when it fits, like WhatsApp; otherwise on its own line. */
+  .time {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 6px -2px -6px 12px;
+    color: var(--slate);
+    font-size: 11.5px;
+    line-height: 15px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .ticks { width: 17px; height: 11px; color: #8696A0; }
+  .ticks .two, .ticks .bad { display: none; }
+  .me.read .ticks { color: var(--read); }
+  .me.read .ticks .one { display: none; }
+  .me.read .ticks .two { display: inline; }
+  .me.failed .ticks { color: var(--fail); width: 14px; height: 14px; }
+  .me.failed .ticks .one, .me.failed .ticks .two { display: none; }
+  .me.failed .ticks .bad { display: inline; }
+
+  /* pictures */
+  .msg.pic, .msg.menu { width: var(--wide); max-width: calc(100% - 32px); }
+  .msg.pic { padding: 3px; }
+  .media {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    cursor: zoom-in;
+  }
+  .media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    background: var(--mist);
+  }
+  .pic .cap { padding: 4px 5px 4px 6px; }
+  .pic .over {
+    position: absolute;
+    right: 9px;
+    bottom: 8px;
+    top: auto;
+    float: none;
+    margin: 0;
+    padding: 1px 6px;
+    border-radius: 9px;
+    background: rgba(11, 20, 26, .5);
+    color: #FFFFFF;
+  }
+
+  /* location */
+  .loc { display: flex; align-items: center; gap: 10px; min-width: 220px; padding: 2px 0 2px; }
+  .loc .pin {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #FFFFFF;
+  }
+  .loc .pin svg { width: 20px; height: 20px; }
+  .loc .t { display: block; font: 600 17px/1.2 var(--sign); color: var(--ink); }
+  .loc .d { display: block; font-size: 13.5px; color: var(--slate); }
+  .coords { display: flow-root; margin-top: 4px; color: var(--slate); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+
+  /* ------------------------------------------------------------ menus */
+  .msg.menu { padding: 0; }
+  .inner { border-radius: inherit; overflow: hidden; }
+  .menu .media { padding: 3px 3px 0; border-radius: 0; }
+  .menu .body { padding: 6px 8px 8px 9px; }
+  .menu .body:empty { display: none; }
+
+  .opt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--hair);
+    background: transparent;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+  }
+  .opt::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    background: var(--flash);
+  }
+  .opt > * { position: relative; }
+  .opt .t { font: 600 17px/1.15 var(--sign); color: var(--ink); }
+  .opt .d { font-size: 13.5px; line-height: 1.3; color: var(--slate); font-variant-numeric: tabular-nums; }
+  .opt .end { flex: none; width: 20px; height: 20px; color: var(--slate); }
+  .opt .check { display: none; color: var(--ink); }
+  @media (hover: hover) { .menu:not(.locked) .opt:hover { background: rgba(221, 232, 236, .45); } }
+  .menu:not(.locked) .opt:active { background: var(--mist); }
+
+  /* rows: one per restroom or payment method */
+  .list .opt { gap: 12px; min-height: 56px; padding: 10px 10px 10px 12px; }
+  .list .label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .list .photo { flex: none; width: 84px; height: 56px; border-radius: 6px; object-fit: cover; background: var(--mist); }
+  .list .badge { flex: none; width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: var(--mist); }
+
+  /* reply buttons */
+  .buttons .opt { flex-direction: column; justify-content: center; gap: 1px; min-height: 48px; padding: 9px 40px; text-align: center; }
+  .buttons .check { position: absolute; right: 14px; top: 50%; margin-top: -10px; }
+
+  /* quiet choices: Back, Exit */
+  .quiet { display: flex; border-top: 1px solid var(--hair); }
+  .quiet .opt { flex: 1; justify-content: center; min-height: 44px; padding: 8px 12px; border-top: 0; text-align: center; }
+  .quiet .opt + .opt { border-left: 1px solid var(--hair); }
+  .quiet .opt .t { font-weight: 500; font-size: 16px; color: var(--slate); }
+  .quiet .check { margin-left: 6px; }
+
+  /* locked: only the last menu takes taps */
+  .locked .opt { cursor: default; }
+  .locked .opt:not(.picked) > * { opacity: .45; }
+  .locked .opt:not(.picked) img { filter: grayscale(1); }
+  .locked .chev { visibility: hidden; }
+  .opt.picked::before { width: 4px; animation: wipe 420ms cubic-bezier(.25, .7, .25, 1); }
+  .opt.picked .chev { display: none; }
+  .opt.picked .check { display: block; }
+  .opt.picked .t { color: var(--ink); }
+  @keyframes wipe {
+    0% { width: 0; }
+    52% { width: 100%; }
+    100% { width: 4px; }
+  }
+
+  /* ------------------------------------------------------------ dock */
+  .dock { position: relative; z-index: 2; padding-bottom: env(safe-area-inset-bottom); }
+
+  .jump {
+    position: absolute;
+    right: 14px;
+    bottom: calc(100% + 10px);
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #FFFFFF;
+    color: var(--slate);
+    box-shadow: var(--float);
+    cursor: pointer;
+  }
+  .jump svg { width: 24px; height: 24px; }
+
+  .chips { display: flex; gap: 8px; padding: 6px 8px 0; overflow-x: auto; scrollbar-width: none; }
+  .chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 14px 0 10px;
+    border: 0;
+    border-radius: 19px;
+    background: #FFFFFF;
+    color: var(--ink);
+    font: 600 16px/1 var(--sign);
+    white-space: nowrap;
+    box-shadow: var(--lift);
+    cursor: pointer;
+  }
+  .chip svg { width: 18px; height: 18px; }
+  .chip:active { background: var(--mist); }
+
+  .sheet {
+    position: absolute;
+    right: 8px;
+    bottom: calc(100% - 4px);
+    left: 8px;
+    padding: 6px;
+    border-radius: 14px;
+    background: #FFFFFF;
+    box-shadow: var(--float);
+  }
+  .sheet button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+  @media (hover: hover) { .sheet button:hover { background: rgba(221, 232, 236, .45); } }
+  .sheet button:active { background: var(--mist); }
+  .sheet .ic {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #FFFFFF;
+  }
+  .sheet .ic svg { width: 22px; height: 22px; }
+  .sheet .t { display: block; font: 600 17px/1.2 var(--sign); color: var(--ink); }
+  .sheet .d { display: block; font-size: 13.5px; color: var(--slate); }
+
+  .composer { display: flex; align-items: flex-end; gap: 6px; padding: 6px 8px 8px; }
+  .field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 2px 0 16px;
+    border-radius: 24px;
+    background: #FFFFFF;
+    box-shadow: var(--lift);
+  }
+  .kbd .field:focus-within { box-shadow: var(--lift), inset 0 0 0 2px var(--ink); }
+  #input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font: 16px/1.3 var(--ui);
+  }
+  #input::placeholder { color: var(--slate); }
+  .clip { color: var(--slate); }
+  .clip[aria-expanded="true"] { color: var(--ink); }
+  .send {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bar);
+    color: #FFFFFF;
+    cursor: pointer;
+  }
+  .send svg { width: 22px; height: 22px; margin-left: 2px; }
+
+  /* ------------------------------------------------------------ picture viewer */
+  #viewer {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 56px 12px 24px;
+    border: 0;
+    background: transparent;
+  }
+  #viewer[open] { display: grid; place-items: center; }
+  #viewer:focus { outline: none; }
+  #viewer::backdrop { background: rgba(11, 20, 26, .92); }
+  #viewer img { max-width: 100%; max-height: calc(100dvh - 80px); border-radius: 4px; }
+  #viewer .close { position: fixed; top: 8px; right: 8px; color: #FFFFFF; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #chat { scroll-behavior: auto; }
+    .opt.picked::before { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <span class="avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path fill="#FFC629" d="M13.4 3.5 6.2 13.2h5l-1 7.3 7.6-10.1h-5.1z"/></svg>
+    </span>
+    <div class="who">
+      <h1 class="name">TapFlash</h1>
+      <p class="sub" id="status">Test chat. Payments are simulated.</p>
+    </div>
+    <button class="iconbtn" id="more" type="button" aria-label="Tester tools" aria-haspopup="menu" aria-expanded="false" aria-controls="tools">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="18.5" r="1.9"/></svg>
+    </button>
+    <div class="pop" id="tools" role="menu" aria-label="Tester tools" hidden>
+      <button type="button" role="menuitem" data-act="reset">Start as a new user</button>
+      <div class="sep" role="separator"></div>
+      <button type="button" role="menuitem" data-say="hi">Send hi</button>
+      <button type="button" role="menuitem" data-say="pass">Send pass</button>
+      <button type="button" role="menuitem" data-say="exit">Send exit</button>
+    </div>
+  </header>
+
+  <main id="chat" role="log" aria-live="polite" aria-label="Chat with TapFlash" tabindex="-1"></main>
+
+  <div class="dock">
+    <button class="jump" id="jump" type="button" aria-label="Jump to the newest message" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9.5 12 15l5.5-5.5"/></svg>
+    </button>
+    <div class="chips" id="chips">
+      <button class="chip" type="button" data-loc="gps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>
+        Share my location
+      </button>
+      <button class="chip" type="button" data-loc="sample">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 22s7-6.4 7-12.1A7 7 0 0 0 5 9.9C5 15.6 12 22 12 22z"/><circle cx="12" cy="9.8" r="2.6" fill="#FFFFFF"/></svg>
+        Use sample location
+      </button>
+    </div>
+
+    <div class="sheet" id="sheet" role="dialog" aria-label="Share a location" hidden>
+      <button type="button" data-loc="gps">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg></span>
+        <span><span class="t">Share my location</span><span class="d">From this device's GPS</span></span>
+      </button>
+      <button type="button" data-loc="sample">
+        <span class="ic"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 22s7-6.4 7-12.1A7 7 0 0 0 5 9.9C5 15.6 12 22 12 22z"/><circle cx="12" cy="9.8" r="2.6" fill="#0A2F44"/></svg></span>
+        <span><span class="t">Use sample location</span><span class="d">Kenyatta Avenue, Nairobi</span></span>
+      </button>
+    </div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="field">
+        <label class="vh" for="input">Message</label>
+        <input id="input" type="text" placeholder="Message" enterkeyhint="send" maxlength="4096" autocomplete="off">
+        <button class="iconbtn clip" id="attach" type="button" aria-label="Share a location" aria-haspopup="dialog" aria-expanded="false" aria-controls="sheet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.3 12 19.8a5.2 5.2 0 0 1-7.4-7.4l8.6-8.6a3.5 3.5 0 0 1 4.9 4.9l-8.6 8.6a1.7 1.7 0 0 1-2.5-2.5l7.9-7.9"/></svg>
+        </button>
+      </div>
+      <button class="send" type="submit" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15 12 3.4 13.8z"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<dialog id="viewer" aria-label="Picture" tabindex="-1">
+  <button class="iconbtn close" type="button" aria-label="Close picture">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+  <img alt="">
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+
+  const PHONE = '+254712345678';
+  const SAMPLE = { lat: -1.2850, lng: 36.8200, place: 'Kenyatta Avenue, Nairobi' };
+  const STAGGER_MS = 250;
+  const SUBLINE = 'Test chat. Payments are simulated.';
+  const COPY = {
+    start: 'Send hi to start.',
+    offline: "Can't reach the bot. Check that npm run web is still running.",
+    blocked: 'Location is blocked in this browser, so the sample location was sent. Allow it in the address bar to use yours.',
+    noFix: "This device couldn't find its location, so the sample location was sent.",
+    finding: 'Finding your location…',
+  };
+
+  const ICON = {
+    chev: '<svg class="end chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>',
+    check: '<svg class="end check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    ticks: '<svg class="ticks" viewBox="0 0 17 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path class="one" d="M2.5 6 5.6 9 11.6 2"/>' +
+      '<path class="two" d="M1 6 4.1 9 10.1 2M7.2 8.1 8.1 9 14.1 2"/>' +
+      '<g class="bad"><circle cx="8.5" cy="5.5" r="5" fill="currentColor" stroke="none"/><path d="M8.5 3v3" stroke="#fff"/><circle cx="8.5" cy="8.2" r=".5" fill="#fff" stroke="#fff"/></g></svg>',
+    pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22s7-6.4 7-12.1A7 7 0 0 0 5 9.9C5 15.6 12 22 12 22z"/><circle cx="12" cy="9.8" r="2.6" fill="#0A2F44"/></svg>',
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const chat = $('#chat');
+  const input = $('#input');
+  const status = $('#status');
+  const chips = $('#chips');
+  const sheet = $('#sheet');
+  const attach = $('#attach');
+  const more = $('#more');
+  const tools = $('#tools');
+  const viewer = $('#viewer');
+  const DEFAULT_PLACEHOLDER = input.placeholder;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // ---------------------------------------------------------------- who am I
+
+  function stored(key) {
+    try { return window.localStorage.getItem(key); } catch { return null; }
+  }
+  function store(key, value) {
+    try { window.localStorage.setItem(key, value); } catch { /* private mode: keep it in memory */ }
+  }
+  function makeId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+    return Math.random().toString(36).slice(2, 14);
+  }
+  let userId = stored('tapflash-user');
+  if (!userId) {
+    userId = makeId();
+    store('tapflash-user', userId);
+  }
+
+  // ---------------------------------------------------------------- text
+
+  const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
+
+  // WhatsApp's *bold*, _italic_ and ~strike~, on text that is already escaped.
+  // A marker opens after a non-letter and closes before one, so snake_case and
+  // 2*3*4 stay as they are.
+  const MARKS = [
+    [/(^|[^\p{L}\p{N}*])\*(?=\S)([^*\n]*?\S)\*(?![\p{L}\p{N}*])/gmu, '$1<b>$2</b>'],
+    [/(^|[^\p{L}\p{N}_])_(?=\S)([^_\n]*?\S)_(?![\p{L}\p{N}_])/gmu, '$1<i>$2</i>'],
+    [/(^|[^\p{L}\p{N}~])~(?=\S)([^~\n]*?\S)~(?![\p{L}\p{N}~])/gmu, '$1<s>$2</s>'],
+  ];
+  const emphasis = (html) => MARKS.reduce((out, [re, to]) => out.replace(re, to), html);
+
+  // "KES 100" and "4 min" never break across lines in a short description.
+  const keepTogether = (html) => html
+    .replace(/(\d) (?=(?:m|km|min|mins|h|hrs?)\b)/g, '$1&nbsp;')
+    .replace(/\b([A-Z]{3}|KSh|TSh|USh) (?=\d)/g, '$1&nbsp;');
+
+  // Bot text to safe HTML: everything escaped, then formatting and links.
+  function format(text) {
+    const source = String(text ?? '');
+    let html = '';
+    let last = 0;
+    for (const match of source.matchAll(/\bhttps?:\/\/[^\s<>"]+/gi)) {
+      const url = match[0].replace(/[.,;:!?'*_~)\]]+$/, '');
+      html += emphasis(esc(source.slice(last, match.index)));
+      html += `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a>`;
+      last = match.index + url.length;
+    }
+    return html + emphasis(esc(source.slice(last)));
+  }
+
+  // The first line of a message as a short plain label for screen readers.
+  function plainLabel(text, fallback) {
+    const line = String(text || '').split('\n').find((l) => l.trim()) || '';
+    const plain = line.replace(/[*_~]/g, '').trim();
+    if (!plain) return fallback;
+    return plain.length > 90 ? `${plain.slice(0, 88)}…` : plain;
+  }
+
+  const clock = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+  const timeHtml = (mine) => `<span class="time">${esc(clock.format(new Date()))}${mine ? ICON.ticks : ''}</span>`;
+
+  // ---------------------------------------------------------------- chat log
+
+  let lastSender = null;
+
+  // While a smooth scroll to the bottom is still running, the reader counts as
+  // at the bottom, so replies that land mid-scroll are followed too.
+  let followUntil = 0;
+  function atBottom() {
+    return performance.now() < followUntil || chat.scrollHeight - chat.scrollTop - chat.clientHeight < 160;
+  }
+  function toBottom() {
+    const smooth = !reduceMotion.matches;
+    followUntil = smooth ? performance.now() + 700 : 0;
+    chat.scrollTo({ top: chat.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  }
+  // Add a node, staying at the bottom if the reader was there (or it is mine).
+  function append(node, force) {
+    const follow = force || atBottom();
+    chat.querySelector('.empty')?.remove();
+    chat.append(node);
+    if (follow) toBottom();
+    return node;
+  }
+
+  function bubble(who, extra) {
+    const el = document.createElement('div');
+    el.className = `msg ${who}${extra ? ` ${extra}` : ''}`;
+    if (lastSender !== who) el.classList.add('first');
+    lastSender = who;
+    return el;
+  }
+
+  function notice(text) {
+    const el = document.createElement('p');
+    el.className = 'note';
+    el.textContent = text;
+    lastSender = null;
+    return append(el, true);
+  }
+
+  function showEmpty() {
+    chat.replaceChildren();
+    lastSender = null;
+    const day = document.createElement('div');
+    day.className = 'day';
+    day.textContent = 'Today';
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = `<p>${esc(COPY.start)}</p><button type="button">Send hi</button>`;
+    empty.querySelector('button').addEventListener('click', () => say('hi'));
+    chat.append(day, empty);
+  }
+
+  function picture(src, width, height, alt) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'media';
+    button.setAttribute('aria-label', `${alt}. Open full size`);
+    const img = document.createElement('img');
+    img.alt = alt;
+    img.decoding = 'async';
+    if (width && height) {
+      img.width = width;
+      img.height = height;
+    } else {
+      img.addEventListener('load', () => { if (atBottom()) toBottom(); }, { once: true });
+    }
+    img.src = src;
+    button.append(img);
+    return button;
+  }
+
+  // ---------------------------------------------------------------- my messages
+
+  function mine(html, extra) {
+    const el = bubble('me', extra);
+    el.innerHTML = html;
+    return append(el, true);
+  }
+  const showMine = (text) => mine(`<div class="txt">${format(text)}${timeHtml(true)}</div>`);
+
+  function showMyLocation(loc, sample) {
+    const where = sample ? `${SAMPLE.place} (sample)` : 'Your current location';
+    const accuracy = !sample && Number.isFinite(loc.accuracy) ? `, within ${Math.round(loc.accuracy)} m` : '';
+    return mine(
+      `<div class="loc"><span class="pin">${ICON.pin}</span>` +
+      `<span><span class="t">Location</span><span class="d">${esc(where + accuracy)}</span></span></div>` +
+      `<div class="coords">${esc(`${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`)}${timeHtml(true)}</div>`,
+      'locmsg',
+    );
+  }
+
+  // ---------------------------------------------------------------- bot replies
+
+  function showText(text) {
+    const el = bubble('bot');
+    el.innerHTML = `<div class="txt">${format(text)}${timeHtml()}</div>`;
+    append(el);
+  }
+
+  function showImage(reply) {
+    const el = bubble('bot', 'pic');
+    const caption = String(reply.caption || '');
+    el.append(picture(reply.src, reply.width, reply.height, reply.alt || plainLabel(caption, 'Picture')));
+    if (caption) {
+      const cap = document.createElement('div');
+      cap.className = 'txt cap';
+      cap.innerHTML = format(caption) + timeHtml();
+      el.append(cap);
+    } else {
+      el.insertAdjacentHTML('beforeend', timeHtml());
+      el.lastElementChild.classList.add('over');
+    }
+    append(el);
+  }
+
+  // Menus: only the newest one takes taps. Tapping locks it at once.
+  const menus = new WeakMap(); // option button -> { menu, option }
+  let lastMenu = null;
+
+  function iconShape(options) {
+    const known = options.filter((o) => o.icon && o.iconWidth && o.iconHeight);
+    if (!known.length) return 'photo';
+    return known.some((o) => o.iconWidth / o.iconHeight > 1.2) ? 'photo' : 'badge';
+  }
+
+  function optionButton(menu, option, className, html) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.innerHTML = html;
+    menus.set(button, { menu, option });
+    menu.buttons.push(button);
+    return button;
+  }
+
+  function rowButton(menu, option, shape) {
+    const description = option.description ? `<span class="d">${keepTogether(esc(option.description))}</span>` : '';
+    const button = optionButton(menu, option, 'opt',
+      `<span class="label"><span class="t">${esc(option.title)}</span>${description}</span>${ICON.chev}${ICON.check}`);
+    if (option.icon) {
+      const img = document.createElement('img');
+      img.className = shape;
+      img.alt = '';
+      img.decoding = 'async';
+      if (!option.iconWidth) {
+        img.addEventListener('load', () => {
+          img.className = img.naturalWidth / img.naturalHeight > 1.2 ? 'photo' : 'badge';
+        }, { once: true });
+      }
+      img.src = option.icon;
+      button.prepend(img);
+    }
+    return button;
+  }
+
+  function replyButton(menu, option, className) {
+    const description = option.description ? `<span class="d">${keepTogether(esc(option.description))}</span>` : '';
+    return optionButton(menu, option, className, `<span class="t">${esc(option.title)}</span>${description}${ICON.check}`);
+  }
+
+  function showMenu(reply) {
+    const options = Array.isArray(reply.options) ? reply.options : [];
+    if (!options.length) return showText(reply.text);
+    lock(lastMenu);
+
+    const el = bubble('bot', 'menu');
+    const menu = { el, buttons: [], input: reply.input || null, locked: false };
+    const inner = document.createElement('div');
+    inner.className = 'inner';
+
+    if (reply.image) {
+      inner.append(picture(reply.image, reply.imageWidth, reply.imageHeight, reply.imageAlt || plainLabel(reply.text, 'Picture')));
+    }
+    const body = document.createElement('div');
+    body.className = 'body';
+    body.innerHTML = `<div class="txt">${format(reply.text)}${timeHtml()}</div>`;
+    inner.append(body);
+
+    const main = options.filter((o) => !o.secondary);
+    const quiet = options.filter((o) => o.secondary);
+    if (main.length) {
+      const asRows = main.some((o) => o.icon);
+      const group = document.createElement('div');
+      group.className = `choices ${asRows ? 'list' : 'buttons'}`;
+      group.setAttribute('role', 'group');
+      group.setAttribute('aria-label', plainLabel(reply.text, 'Choices'));
+      const shape = iconShape(main);
+      for (const option of main) {
+        group.append(asRows ? rowButton(menu, option, shape) : replyButton(menu, option, 'opt'));
+      }
+      inner.append(group);
+    }
+    if (quiet.length) {
+      const footer = document.createElement('div');
+      footer.className = 'quiet';
+      for (const option of quiet) footer.append(replyButton(menu, option, 'opt'));
+      inner.append(footer);
+    }
+
+    el.append(inner);
+    lastMenu = menu;
+    composerFor(menu);
+    append(el);
+  }
+
+  function lock(menu, picked) {
+    if (!menu || menu.locked) return;
+    menu.locked = true;
+    menu.el.classList.add('locked');
+    for (const button of menu.buttons) button.disabled = true;
+    if (picked) {
+      picked.classList.add('picked');
+      picked.setAttribute('aria-current', 'true');
+    }
+    composerFor(null);
+  }
+
+  // A send failed: give the choices back, if nothing newer arrived since.
+  function unlock(menu) {
+    if (!menu || menu !== lastMenu || !menu.locked) return;
+    menu.locked = false;
+    menu.el.classList.remove('locked');
+    for (const button of menu.buttons) {
+      button.disabled = false;
+      button.classList.remove('picked');
+      button.removeAttribute('aria-current');
+    }
+    composerFor(menu);
+  }
+
+  const liveMenu = () => (lastMenu && !lastMenu.locked ? lastMenu : null);
+
+  // A menu that also takes typing (a phone number) sets the composer's hint.
+  function composerFor(menu) {
+    const hint = menu && menu.input ? String(menu.input.placeholder || '') : '';
+    input.placeholder = hint || DEFAULT_PLACEHOLDER;
+    if (hint && /^[\dX\s+()-]+$/i.test(hint)) input.setAttribute('inputmode', 'tel');
+    else input.removeAttribute('inputmode');
+  }
+
+  function render(reply) {
+    if (!reply) return;
+    if (reply.kind === 'text') showText(reply.text);
+    else if (reply.kind === 'image' && reply.src) showImage(reply);
+    else if (reply.kind === 'menu') showMenu(reply);
+  }
+
+  // ---------------------------------------------------------------- talking to the bot
+
+  let generation = 0; // bumped by "Start as a new user", so late replies are dropped
+  let queue = Promise.resolve();
+  let pending = 0;
+  let statusOverride = '';
+
+  function updateStatus() {
+    status.textContent = statusOverride || (pending > 0 ? 'typing…' : SUBLINE);
+  }
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  function send(payload, bubbleEl, onFail) {
+    const gen = generation;
+    pending++;
+    updateStatus();
+    queue = queue
+      .then(() => deliver(payload, bubbleEl, onFail, gen))
+      .catch((err) => console.error('[tester] could not show a reply:', err))
+      .finally(() => {
+        if (gen !== generation) return;
+        pending--;
+        updateStatus();
+      });
+  }
+
+  async function deliver(payload, bubbleEl, onFail, gen) {
+    if (gen !== generation) return;
+    let data;
+    try {
+      const res = await fetch('/api/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, phone: PHONE, ...payload }),
+      });
+      data = await res.json().catch(() => null);
+      if (!res.ok || !data || !Array.isArray(data.replies)) {
+        const reason = data && data.error ? data.error : `HTTP ${res.status}`;
+        const err = new Error(`The bot sent an error: ${reason}`);
+        err.fromBot = true;
+        throw err;
+      }
+    } catch (err) {
+      if (gen !== generation) return;
+      bubbleEl.classList.add('failed');
+      if (onFail) onFail();
+      notice(err.fromBot ? err.message : COPY.offline);
+      return;
+    }
+    if (gen !== generation) return;
+    bubbleEl.classList.add('read');
+    for (let i = 0; i < data.replies.length; i++) {
+      if (i) await sleep(STAGGER_MS);
+      if (gen !== generation) return;
+      render(data.replies[i]);
+    }
+  }
+
+  // Anything the user sends by typing (or from the tools menu) closes the live menu
+  // without picking from it.
+  function say(text) {
+    const menu = liveMenu();
+    lock(menu);
+    send({ type: 'text', text }, showMine(text), () => unlock(menu));
+  }
+
+  function choose(button, viaKeyboard) {
+    const found = menus.get(button);
+    if (!found || found.menu.locked || found.menu !== lastMenu) return;
+    const { menu, option } = found;
+    lock(menu, button);
+    send({ type: 'text', text: option.id }, showMine(option.title), () => unlock(menu));
+    if (viaKeyboard) input.focus();
+  }
+
+  function sendLocation(loc, sample) {
+    const menu = liveMenu();
+    lock(menu);
+    const point = { lat: loc.lat, lng: loc.lng };
+    send({ type: 'location', ...point }, showMyLocation(loc, sample), () => unlock(menu));
+    chips.hidden = true;
+  }
+
+  // While the device looks for its position, more taps (or the sample
+  // location) would send a second location: they wait for this one.
+  let locating = false;
+
+  function shareLocation(kind) {
+    closeSheet();
+    if (locating) return;
+    if (kind === 'sample' || !navigator.geolocation) {
+      sendLocation(SAMPLE, true);
+      return;
+    }
+    const gen = generation;
+    locating = true;
+    statusOverride = COPY.finding;
+    updateStatus();
+    // False when "Start as a new user" came first: the fix was for the old user.
+    const found = () => {
+      if (gen !== generation) return false;
+      locating = false;
+      statusOverride = '';
+      updateStatus();
+      return true;
+    };
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!found()) return;
+        sendLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }, false);
+      },
+      (err) => {
+        if (!found()) return;
+        sendLocation(SAMPLE, true);
+        notice(err && err.code === 1 ? COPY.blocked : COPY.noFix);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }
+
+  function newUser() {
+    generation++;
+    queue = Promise.resolve();
+    pending = 0;
+    locating = false;
+    statusOverride = '';
+    updateStatus();
+    userId = makeId();
+    store('tapflash-user', userId);
+    lastMenu = null;
+    composerFor(null);
+    chips.hidden = false;
+    jump.hidden = true;
+    input.value = '';
+    showEmpty();
+  }
+
+  // ---------------------------------------------------------------- wiring
+
+  $('#composer').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    say(text);
+  });
+
+  chat.addEventListener('click', (event) => {
+    const option = event.target.closest('.opt');
+    if (option) {
+      choose(option, event.detail === 0);
+      return;
+    }
+    const media = event.target.closest('.media');
+    if (media) openViewer(media);
+  });
+
+  document.querySelectorAll('[data-loc]').forEach((button) => {
+    button.addEventListener('click', () => shareLocation(button.dataset.loc));
+  });
+
+  // location sheet
+  function openSheet() {
+    closeTools();
+    sheet.hidden = false;
+    attach.setAttribute('aria-expanded', 'true');
+    sheet.querySelector('button').focus();
+  }
+  function closeSheet(restoreFocus) {
+    if (sheet.hidden) return;
+    sheet.hidden = true;
+    attach.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) attach.focus();
+  }
+  attach.addEventListener('click', () => (sheet.hidden ? openSheet() : closeSheet(true)));
+
+  // tester tools menu
+  const toolItems = () => Array.from(tools.querySelectorAll('[role="menuitem"]'));
+  function openTools() {
+    closeSheet();
+    tools.hidden = false;
+    more.setAttribute('aria-expanded', 'true');
+    toolItems()[0].focus();
+  }
+  function closeTools(restoreFocus) {
+    if (tools.hidden) return;
+    tools.hidden = true;
+    more.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) more.focus();
+  }
+  more.addEventListener('click', () => (tools.hidden ? openTools() : closeTools(true)));
+  tools.addEventListener('click', (event) => {
+    const item = event.target.closest('[role="menuitem"]');
+    if (!item) return;
+    closeTools(event.detail === 0); // keyboard: back to the button that opened it
+    if (item.dataset.act === 'reset') newUser();
+    else say(item.dataset.say);
+  });
+  tools.addEventListener('keydown', (event) => {
+    const items = toolItems();
+    const at = items.indexOf(document.activeElement);
+    const go = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[event.key];
+    if (go === undefined) return;
+    event.preventDefault();
+    items[(go + items.length) % items.length].focus();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!tools.hidden) closeTools(true);
+    else if (!sheet.hidden) closeSheet(true);
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!tools.hidden && !tools.contains(event.target) && !more.contains(event.target)) closeTools();
+    if (!sheet.hidden && !sheet.contains(event.target) && !attach.contains(event.target)) closeSheet();
+  });
+  document.addEventListener('focusin', (event) => {
+    if (!tools.hidden && !tools.contains(event.target) && event.target !== more) closeTools();
+    if (!sheet.hidden && !sheet.contains(event.target) && event.target !== attach) closeSheet();
+  });
+
+  // picture viewer. The dialog itself takes focus when opened, so Close isn't
+  // ringed on every tap; Tab reaches it.
+  let opener = null;
+  function openViewer(button) {
+    const img = button.querySelector('img');
+    const big = viewer.querySelector('img');
+    big.src = img.src;
+    big.alt = img.alt;
+    opener = button;
+    viewer.showModal();
+    viewer.focus();
+  }
+  viewer.addEventListener('click', (event) => {
+    if (event.target !== viewer.querySelector('img')) viewer.close();
+  });
+  viewer.addEventListener('close', () => {
+    viewer.querySelector('img').removeAttribute('src');
+    if (opener && opener.isConnected) opener.focus();
+    opener = null;
+  });
+
+  // Scrolled up to reread something: offer a way back down, like WhatsApp.
+  const jump = $('#jump');
+  chat.addEventListener('scroll', () => {
+    jump.hidden = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 240;
+  }, { passive: true });
+  jump.addEventListener('click', (event) => {
+    toBottom();
+    if (event.detail === 0) input.focus({ preventScroll: true }); // keyboard only: a tap would open the phone keyboard
+  });
+
+  // The composer's focus ring is for keyboard users; a tap shows the caret only.
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') document.documentElement.classList.add('kbd');
+  }, true);
+  document.addEventListener('pointerdown', () => document.documentElement.classList.remove('kbd'), true);
+
+  showEmpty();
+  if (window.matchMedia('(hover: hover)').matches) input.focus();
+})();
+</script>
+</body>
+</html>

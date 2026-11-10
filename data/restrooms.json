@@ -1,0 +1,52 @@
+[
+  {
+    "id": "nbi-city-market",
+    "name": "City Market Restroom (sample)",
+    "area": "Muindi Mbingu Street, Nairobi CBD",
+    "lat": -1.2833,
+    "lng": 36.8219,
+    "price": 100,
+    "hours": "6:00 AM – 9:00 PM",
+    "image": null
+  },
+  {
+    "id": "nbi-kenyatta-ave",
+    "name": "Kenyatta Avenue Restroom (sample)",
+    "area": "Kenyatta Avenue, Nairobi CBD",
+    "lat": -1.2850,
+    "lng": 36.8200,
+    "price": 100,
+    "hours": "24 hours",
+    "image": null
+  },
+  {
+    "id": "nbi-jeevanjee",
+    "name": "Jeevanjee Gardens Restroom (sample)",
+    "area": "Jeevanjee Gardens main gate",
+    "lat": -1.2812,
+    "lng": 36.8195,
+    "price": 50,
+    "hours": "6:00 AM – 7:00 PM",
+    "image": null
+  },
+  {
+    "id": "nbi-railways",
+    "name": "Railways Bus Terminus Restroom (sample)",
+    "area": "Haile Selassie Avenue",
+    "lat": -1.2903,
+    "lng": 36.8269,
+    "price": 100,
+    "hours": "5:00 AM – 11:00 PM",
+    "image": null
+  },
+  {
+    "id": "nbi-uhuru-park",
+    "name": "Uhuru Park Restroom (sample)",
+    "area": "Uhuru Park, near the lake",
+    "lat": -1.2885,
+    "lng": 36.8131,
+    "price": 50,
+    "hours": "6:00 AM – 6:00 PM",
+    "image": null
+  }
+]

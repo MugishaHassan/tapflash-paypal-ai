@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Septic tank emptying, {{ order.restroom.name }}</title>
+<style>
+  :root { --ink: #1C1E49; --sun: #79D3E7; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #EFEAE2; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #111B21; padding: 16px; }
+  main { width: 100%; max-width: 400px; background: #fff; border-radius: 16px; padding: 24px 20px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  h1 { font-size: 21px; margin: 0 0 4px; } p { margin: 0 0 12px; color: #4a5568; }
+  .gauge { height: 14px; border-radius: 7px; background: #E8E4DC; overflow: hidden; margin: 14px 0 6px; }
+  .gauge i { display: block; height: 100%; background: #B4372C; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 16px 0; } dt { color: #667781; } dd { margin: 0; font-weight: 600; }
+  button { width: 100%; font: 700 17px system-ui, sans-serif; padding: 14px; border: 0; border-radius: 10px; background: var(--ink); color: #fff; cursor: pointer; }
+  .ok { background: #E7F5EA; color: #116329; border-radius: 10px; padding: 12px; } .err { background: #FBE7E4; color: #B4372C; border-radius: 10px; padding: 10px 12px; }
+  small { display: block; margin-top: 12px; color: #667781; }
+</style></head><body><main>
+  <h1>Septic tank, {{ order.restroom.name }}</h1>
+  <p>{{ order.level|floatformat:0 }}% full{% if order.days_left is not None %}, about {{ order.days_left|floatformat:"-1" }} days left{% endif %}.</p>
+  <div class="gauge" aria-hidden="true"><i style="width:{{ order.level|floatformat:0 }}%"></i></div>
+  <dl><dt>Company</dt><dd>{{ order.provider }}</dd><dt>Price</dt><dd>{{ order.currency }} {{ order.price }}</dd><dt>Status</dt><dd>{{ order.get_status_display }}</dd></dl>
+  {% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+  {% if open %}<form method="post" action="/empty/{{ order.token }}/pay">{% csrf_token %}<button type="submit">Order emptying, pay with PayPal</button></form>
+  {% else %}<p class="ok">Paid{% if order.capture_id %} with PayPal ({{ order.capture_id }}){% endif %}. {{ order.provider }} has been paid and booked.</p>{% endif %}
+  <small>{{ bot_name }}. Readings come from the restroom's tank sensor; this demo uses the sensor sandbox (test readings) and the PayPal sandbox (test money).</small>
+</main></body></html>

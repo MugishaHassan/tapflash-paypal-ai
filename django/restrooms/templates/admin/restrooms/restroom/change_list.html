@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block messages %}
+  {{ block.super }}
+  {% if demo_restrooms_near_user %}
+    <ul class="messagelist">
+      <li class="warning">The chat is in demo mode: it offers made-up sample restrooms near whoever shares a location, not the restrooms listed here. To use these, set DEMO_RESTROOMS_NEAR_USER=false in the .env file and restart the app.</li>
+    </ul>
+  {% endif %}
+{% endblock %}
