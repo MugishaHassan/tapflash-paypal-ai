@@ -29,27 +29,38 @@ photos scored by Gemini with their bonus.
 
 ## For judges
 
-**Start here: <https://hackathon.withpdf.com/judges/>**: one page with the three steps, one-click entry to the
-dashboard and the door check, and the PayPal sandbox buyer login.
+**Start here: <https://hackathon.withpdf.com/judges/>**. One page with four stops, one-click entry to the
+dashboard and the door check, and the PayPal sandbox buyer login. PayPal runs in the **sandbox** (real API
+calls, test money).
 
-**The 60-second path:** open <https://hackathon.withpdf.com/>, type `Niko Kencom, nataka choo safi`, pick a
-restroom, Pay, PayPal, and log in with the sandbox buyer from the Devpost testing instructions. Back in the
-chat, write `The door was locked`: Gemini refunds you through PayPal. Then open `/ops/` (judge login) to see
-the visit, the AI's review and the refund, and pay the operator with PayPal Payouts.
+Use two separate visits. One payment can only end one way: the door opens and the hold is charged, or the
+visit fails and the hold is released.
 
+**Visit 1: the door opens**
+1. In the chat, type `Niko Kencom, nataka choo safi`, pick a restroom, then Pay and PayPal. Log in with the
+   sandbox buyer. PayPal holds the money.
+2. Open the door check (`/gate/`, one click from the judges' page). Scan the access QR code or type its
+   6-digit code, then press **Let them in**: the hold is charged.
+3. Scan the same code again: **Already used**.
 
-- **Hosted demo:** <https://hackathon.withpdf.com/>: the same bot as on WhatsApp, in a web chat, so nothing
-  needs installing. PayPal is in **sandbox**: pay with the sandbox buyer account given in the Devpost
-  testing instructions (or any sandbox personal account of yours).
-- **Operators' dashboard:** <https://hackathon.withpdf.com/ops/> (AG Grid), with the login in the Devpost
-  testing instructions.
-- **Door check (the attendant's phone):** <https://hackathon.withpdf.com/gate/>, same login: scan the access
-  QR code from the chat, or type its 6-digit code.
-- **To try a cleaning bonus** in the web chat: ⋮ menu > *Send a photo (cleaners)*: the test chat's number
-  is registered as a cleaner on the demo. A clean photo of the demo restroom is paid at once; a photo of
-  another restroom goes to staff (Gemini compares it with the restroom's own photo): approve it on `/ops/`
-  to see the PayPal payout. The web chat sends a fixed test number, so on the demo anyone can act as that
-  cleaner; on WhatsApp the number comes from WhatsApp.
+**Visit 2: the door is locked**
+4. Pay again the same way and do not scan it. Write `The door was locked`: Gemini reviews it and the hold is
+   released. You are never charged.
+
+**Then**
+5. On the judges' page, press **Send a sample clean photo**. Gemini checks it as the demo cleaner; a clean
+   one is paid a bonus with PayPal Payouts, a doubtful one waits for staff.
+6. Open the dashboard (`/ops/`): your visits, Gemini's review, the cleaning photo, operator payouts, and staff
+   **Refund** and **Release hold** buttons.
+7. Search again in the chat: the restroom now says *cleaned* with the approval time.
+
+Limits the code enforces (set in `.env`, shown on the judges' page): an automatic refund only within
+`REFUND_WINDOW_MINUTES` (default 120) of paying, and at most `MAX_REFUNDS_PER_DAY` (default 1) per person per
+day. The demo may use a higher number so you can test more than once. Staff refunds have no limit.
+
+**What is real:** PayPal Orders, Refunds, Payouts and webhooks (sandbox), Gemini, the WhatsApp bot and the QR
+door check. The five Nairobi restrooms, their operators and the sample dashboard rows are demo data.
+
 - **Run it yourself:** see [Try it](#try-it). Without keys everything still runs, with payments and AI
   simulated.
 
