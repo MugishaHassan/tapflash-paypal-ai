@@ -146,7 +146,7 @@ class PaymentTests(EngineTestCase):
 
         out = texts(t.say('1'))
         self.assertIn('*1.* M-Pesa\n_No fees_', out)
-        self.assertIn('*4.* PayPal\n_1% fee_', out)
+        self.assertIn('*4.* PayPal\n_TapFlash service fee 1%_', out)
 
         out = texts(t.say('1'))
         self.assertIn('Enter your M-Pesa number', out)

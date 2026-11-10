@@ -63,7 +63,7 @@ class MessagesTests(SimpleTestCase):
             (msg.pay_prompt(RAILWAYS), "*Railways*\n12.7 km, about 3 h 18 min walk\nPrice: KES 101.50\n\nPay to get the route and your access code."),
             (msg.choose_payment_method(), "How would you like to pay?"),
             (msg.method_fee(MPESA), "No fees"),
-            (msg.method_fee(CARD), "1.5% fee"),
+            (msg.method_fee(CARD), "TapFlash service fee 1.5%"),
             (msg.ask_phone(MPESA), "Enter your M-Pesa number, for example 0712 345 678."),
             (msg.use_whatsapp_number('+254712345678'), "Use +254712345678"),
             (msg.bad_phone(MPESA), "That doesn't look like an M-Pesa number. Send it like 0712 345 678 or +254 712 345 678."),

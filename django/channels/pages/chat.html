@@ -85,7 +85,7 @@
   @media (min-width: 1100px) {
     body { display: flex; justify-content: center; align-items: flex-start; gap: 28px; }
     .app { margin: 0; }
-    .intro { display: block; width: 340px; margin-top: 40px; color: #fff; position: relative; z-index: 1; }
+    .intro { display: block; width: 340px; margin-top: 40px; color: var(--text); position: relative; z-index: 1; }
     .intro h2 { font: 700 26px/1.15 var(--sign); margin: 0 0 10px; }
     .intro .try { background: #fff; color: var(--text); border-radius: 14px; padding: 16px 18px; box-shadow: var(--float); margin-top: 22px; }
     .intro .try p.lead { margin: 0 0 12px; color: var(--text); font-size: 14.5px; line-height: 1.5; }
@@ -917,6 +917,8 @@
     button.type = 'button';
     button.className = className;
     button.innerHTML = html;
+    button.dataset.optId = String(option.id);
+    button.dataset.optTitle = String(option.title || '');
     menus.set(button, { menu, option });
     menu.buttons.push(button);
     return button;
@@ -1374,9 +1376,18 @@
     if (!html || !html.includes('msg')) return false;
     const old = document.createElement('div');
     old.className = 'history';
-    old.inert = true;
     old.innerHTML = html;
     old.querySelectorAll('.empty').forEach((node) => node.remove());
+    // The newest menu stays usable after a reload (its buttons remember their ids); the rest is read-only.
+    const last = [...old.querySelectorAll('.msg.menu')].pop();
+    const buttons = last && !last.classList.contains('locked') ? [...last.querySelectorAll('.opt[data-opt-id]')] : [];
+    const live = buttons.length && old.lastElementChild === last ? last : null;
+    for (const child of old.children) if (child !== live) child.inert = true;
+    if (live) {
+      const menu = { el: live, buttons, input: null, locked: false };
+      for (const button of buttons) menus.set(button, { menu, option: { id: button.dataset.optId, title: button.dataset.optTitle } });
+      lastMenu = menu;
+    }
     chat.replaceChildren(old);
     lastSender = null;
     chat.scrollTop = chat.scrollHeight;

@@ -8,6 +8,7 @@ from functools import wraps
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.http import JsonResponse
+from django.templatetags.static import static
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -23,10 +24,10 @@ from .models import Attendant
 
 logger = logging.getLogger(__name__)
 
-JSQR = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
+JSQR = 'ops/vendor/jsQR.js'  # served from this project's static files (jsQR 1.4.0)
 CSP = '; '.join([
     "default-src 'none'",
-    f"script-src 'unsafe-inline' {JSQR}",
+    "script-src 'self' 'unsafe-inline'",
     "style-src 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "media-src 'self' blob:",
@@ -130,7 +131,7 @@ def gate(request):
     restroom, allowed = _current_restroom(request)
     return _secure(render(request, 'ops/gate.html', {
         'bot_name': settings.TAPFLASH.bot_name, 'restroom': restroom,
-        'restrooms': allowed if request.user.is_staff else [], 'jsqr': JSQR,
+        'restrooms': allowed if request.user.is_staff else [], 'jsqr': static(JSQR),
         'who': request.user.get_full_name() or request.user.get_username(),
     }))
 

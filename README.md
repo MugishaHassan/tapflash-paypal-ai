@@ -24,7 +24,7 @@ Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) with
 The operators' dashboard (AG Grid): what each operator is owed, paid with PayPal Payouts, and cleaning
 photos scored by Gemini with their bonus.
 
-![Operators owed, with several ticked to pay together and a pinned totals row](docs/images/ops-owed.jpg)
+![Operators owed, with several ticked to pay in one click and a pinned totals row](docs/images/ops-owed.jpg)
 ![Cleaning bonuses: photo, Gemini score, decision and PayPal payout](docs/images/ops-cleaning.jpg)
 
 ## For judges
@@ -33,8 +33,8 @@ photos scored by Gemini with their bonus.
 dashboard and the door check, and the PayPal sandbox buyer login.
 
 **The 60-second path:** open <https://hackathon.withpdf.com/>, type `Niko Kencom, nataka choo safi`, pick a
-restroom, Pay, PayPal, and log in with the sandbox buyer from the Devpost testing instructions. Pay for a
-second visit and do not scan it; write `The door was locked` and Gemini releases the hold, so you are not charged. Then open `/ops/` (judge login) to see
+restroom, Pay, PayPal, and log in with the sandbox buyer from the Devpost testing instructions. Back in the
+chat, write `The door was locked`: Gemini refunds you through PayPal. Then open `/ops/` (judge login) to see
 the visit, the AI's review and the refund, and pay the operator with PayPal Payouts.
 
 
@@ -88,8 +88,8 @@ code carries it out.
   An approved photo also tells visitors: the restroom list says *cleaned 25 min ago*, and asking for the
   cleanest puts restrooms cleaned in the last 6 hours first ([restrooms/finder.py](django/restrooms/finder.py)).
 - **Rules the AI can't bend** ([payments/refunds.py](django/payments/refunds.py)): money goes back only for a
-  paid visit that was not refunded yet, reported within 2 hours, and at most once a day per person
-  (counted by chat, phone number and PayPal account). Everything else goes to staff with the AI's note.
+  paid visit that was not refunded yet, reported within `REFUND_WINDOW_MINUTES` (default 120), and at most `MAX_REFUNDS_PER_DAY`
+  (default 1) per person per day (counted by chat, phone number and PayPal account). Everything else goes to staff with the AI's note.
   A full refund ends the access pass. The report is passed to the model as data, never as instructions.
 - **Guardrails**: the model never sees phone numbers, links in its text are removed, and without a key
   the bot simply runs on its menus.
@@ -124,7 +124,7 @@ WhatsApp, the app people already use.
 
 Operators open `/ops/` (an **AG Grid** dashboard), see what they are owed and press **Pay**: their share
 of every paid visit, minus refunds, goes to their PayPal account through **PayPal Payouts**. Staff tick
-several operators to pay them together, fix a PayPal email or a share right in the grid, add cleaners and door
+several operators and pay them in one click (each gets its own PayPal payout), fix a PayPal email or a share right in the grid, add cleaners and door
 attendants (with their logins) in the People section, and watch new
 payments, refunds and payout statuses flash in as they happen (row ids, cell flashing, a pinned totals
 row, floating filters, CSV export and each viewer's saved column layout; AG Grid Community only). Reports the AI

@@ -93,6 +93,7 @@
   'use strict';
   const video = document.getElementById('video');
   const hint = document.getElementById('hint');
+  if (!window.jsQR && hint) hint.textContent = 'The scanner did not load. Type the 6-digit code instead.';
   const nocam = document.getElementById('nocam');
   const result = document.getElementById('result');
   const csrf = () => (document.cookie.match(/(?:^|; )csrftoken=([^;]+)/) || [])[1] || '';

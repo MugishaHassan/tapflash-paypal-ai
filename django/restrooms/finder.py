@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from django.apps import apps
 from django.db.models import OuterRef, Subquery
+from django.db.models.functions import Coalesce
 
 from .demo import demo_restrooms_around
 from .geo import EARTH_RADIUS_KM, distance_km
@@ -93,13 +94,14 @@ class RestroomFinder:
         latest = OuterRef('pk')
         approved = (
             apps.get_model('ops', 'CleaningCheck').objects
-            .filter(restroom=latest, status='approved').order_by('-created_at')
+            .filter(restroom=latest, status='approved').annotate(approved_at=Coalesce('decided_at', 'created_at'))
+            .order_by('-approved_at')
         )
         rows = Restroom.objects.filter(
             is_active=True,
             latitude__range=(location.lat - band, location.lat + band),
         ).annotate(
-            cleaned_at=Subquery(approved.values('created_at')[:1]),
+            cleaned_at=Subquery(approved.values('approved_at')[:1]),
             cleaned_score=Subquery(approved.values('score')[:1]),
         ).order_by('pk')
         return [row.to_facility(self.config.default_price, row.cleaned_at, row.cleaned_score) for row in rows]

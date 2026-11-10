@@ -116,3 +116,17 @@ class RestroomFinderTests(TestCase):
         self.assertNotIn('cleaned', msg.restroom_details(found[1], now=now))
         later = now + timedelta(days=1)
         self.assertNotIn('cleaned', msg.restroom_details(found[0], now=later), 'older than a day is not shown')
+
+    def test_cleaned_ago_counts_from_the_approval_not_from_the_photo(self):
+        from bot.messages import Messages
+        from ops.models import Cleaner, CleaningCheck
+        now = datetime.fromisoformat('2026-11-08T12:00:00+03:00')
+        market = Restroom.objects.get(code='city-market')
+        cleaner = Cleaner.objects.create(name='Amina', phone='+254700000001', restroom=market)
+        # The photo waited three hours for a supervisor, who approved it 5 minutes ago.
+        CleaningCheck.objects.create(cleaner=cleaner, restroom=market, user_id='u', photo=b'x', photo_hash='h',
+                                     status='approved', score=4, created_at=now - timedelta(hours=3),
+                                     decided_at=now - timedelta(minutes=5))
+        found = self.finder().nearest(HERE, now, need='clean')
+        city = next(f for f in found if f.code == 'city-market')
+        self.assertTrue(Messages(build_config({})).restroom_details(city, now=now).endswith(', cleaned 5 min ago'))

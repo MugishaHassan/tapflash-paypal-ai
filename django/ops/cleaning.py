@@ -70,14 +70,19 @@ def looks_alike(a, b):
     return bool(a and b) and bin(int(a, 16) ^ int(b, 16)).count('1') <= LOOK_DISTANCE
 
 
-def seen_before(look, restroom):
-    """Whether the photo is a copy of the restroom's own photo or of an earlier cleaning photo."""
+def seen_before(look, restroom, user_id=None, same_as_reference=True):
+    """Whether the photo is a copy of the restroom's own photo or of an earlier cleaning photo.
+    user_id: only that sender's earlier photos count (the web test chat, where every visitor is
+    the same cleaner, so one judge's photo never blocks the next judge)."""
     if not look:
         return False
     reference = reference_photo(restroom)
-    if reference and looks_alike(look, photo_look(reference[0])):
+    if same_as_reference and reference and looks_alike(look, photo_look(reference[0])):
         return True
-    earlier = (CleaningCheck.objects.filter(restroom=restroom).exclude(photo_look='')
+    rows = CleaningCheck.objects.filter(restroom=restroom)
+    if user_id is not None:
+        rows = rows.filter(user_id=user_id)
+    earlier = (rows.exclude(photo_look='')
                .order_by('-created_at').values_list('photo_look', flat=True)[:500])
     return any(looks_alike(look, other) for other in earlier)
 
@@ -97,16 +102,24 @@ def reference_photo(restroom):
     return data, 'image/png' if name.endswith('.png') else 'image/webp' if name.endswith('.webp') else 'image/jpeg'
 
 
-def check_photo(*, cleaner, user_id, channel, photo, mimetype, judge, checkout, config, now=None):
+def check_photo(*, cleaner, user_id, channel, photo, mimetype, judge, checkout, config, now=None,
+                allow_reference_copy=False):
     """Handle one cleaning photo. Returns the text to send the cleaner."""
     now = now or timezone.now()
     if mimetype not in PHOTO_TYPES or not photo or len(photo) > MAX_PHOTO_BYTES:
         return 'Please send the cleaning photo as a normal photo (JPEG or PNG, under 5 MB).'
     digest = hashlib.sha256(photo).hexdigest()
     look = photo_look(photo)
-    if CleaningCheck.objects.filter(photo_hash=digest).exists() or seen_before(look, cleaner.restroom):
+    # In the web test chat every visitor is the same cleaner, so "sent before" counts only this visitor's own photos.
+    scoped = user_id if channel == 'web' else None
+    same_hash = CleaningCheck.objects.filter(photo_hash=digest)
+    if scoped is not None:
+        same_hash = same_hash.filter(user_id=scoped)
+    if same_hash.exists() or seen_before(look, cleaner.restroom, scoped, same_as_reference=not allow_reference_copy):
         return 'This photo was sent before. Please take a new photo of today\'s cleaning.'
     counted = cleaner.checks.exclude(status=CleaningCheck.Status.REJECTED)
+    if scoped is not None:
+        counted = counted.filter(user_id=scoped)  # the web test chat: each visitor has their own limits
     last = counted.filter(created_at__gt=now - timedelta(hours=config.cleaning_bonus_hours)).order_by('-created_at').first()
     if last:
         ready = timezone.localtime(last.created_at + timedelta(hours=config.cleaning_bonus_hours))
@@ -141,6 +154,7 @@ def check_photo(*, cleaner, user_id, channel, photo, mimetype, judge, checkout, 
         cleaner=cleaner, restroom=cleaner.restroom, user_id=user_id, channel=channel, photo=photo,
         photo_type=mimetype, photo_hash=digest, photo_look=look, status=status, score=score, ai_note=note[:300],
         decided_by='ai' if verdict else '', created_at=now,
+        decided_at=now if status != CleaningCheck.Status.REVIEW else None,
     )
     said = f"{verdict['reply']} " if verdict and verdict['reply'] else ''
     if status == CleaningCheck.Status.APPROVED:
@@ -192,8 +206,8 @@ def decide(check, *, approve, staff_name, checkout, config, now=None):
         if check.status != CleaningCheck.Status.REVIEW:
             raise ValueError('This check was already decided.')
         check.status = CleaningCheck.Status.APPROVED if approve else CleaningCheck.Status.REJECTED
-        check.decided_by = staff_name[:80]
-        check.save(update_fields=['status', 'decided_by'])
+        check.decided_by, check.decided_at = staff_name[:80], now
+        check.save(update_fields=['status', 'decided_by', 'decided_at'])
     if not approve:
         return 'Marked as not approved.', 'A supervisor checked your photo: not approved this time. Send a new photo after cleaning.'
     result = pay_bonus(check, checkout=checkout, config=config, now=now)

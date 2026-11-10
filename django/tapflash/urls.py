@@ -17,6 +17,7 @@ urlpatterns = [
     path('gate/', include('ops.gate_urls')),
     path('judges/', judges_views.judges, name='judges'),
     path('judges/enter/<str:place>', judges_views.judge_login, name='judge-enter'),
+    path('judges/sample-photo/<str:kind>', judges_views.sample_photo, name='judge-sample-photo'),
     path('api/sensors', septic_views.sensor_api, name='sensor-api'),
     path('api/operator-link', septic_views.operator_link, name='operator-link'),
     path('empty/<str:token>', septic_views.emptying, name='emptying'),

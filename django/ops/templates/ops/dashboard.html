@@ -417,6 +417,11 @@
 <script>
 (() => {
   'use strict';
+  if (!window.agGrid) {
+    const text = document.getElementById('live-text');
+    if (text) text.textContent = 'The grid library did not load. Reload the page.';
+    return;
+  }
   const CURRENCY = "{{ currency|escapejs }}";
   const ZONE = 'Africa/Nairobi';
   if (agGrid.ModuleRegistry && agGrid.AllCommunityModule) agGrid.ModuleRegistry.registerModules([agGrid.AllCommunityModule]);
@@ -523,6 +528,23 @@
     else if (done.length) toast(`Paid ${plural(done.length, 'operator')} with PayPal Payouts.`);
     grids.restrooms.deselectAll();
     load();
+  }
+
+  function visitCell(params) {
+    const row = params.data;
+    if (!row || !['succeeded', 'held'].includes(row.status)) return '';
+    const action = row.status === 'held' ? 'release' : 'refund';
+    const button = document.createElement('button');
+    button.className = 'quiet small';
+    button.textContent = action === 'release' ? 'Release hold' : 'Refund';
+    button.title = action === 'release' ? 'Release the PayPal hold: the visitor is not charged' : 'Refund the whole visit through PayPal';
+    button.addEventListener('click', async () => {
+      if (!confirm(`${button.textContent} for the visit at ${row.restroom}? The user is told in the chat.`)) return;
+      button.disabled = true;
+      try { toast((await post('{% url "ops-visit" %}', { payment: row.id, action })).message); } catch (err) { toast(err.message, true); }
+      load();
+    });
+    return button;
   }
 
   function refundCell(params) {
@@ -662,6 +684,7 @@
         { field: 'entered', headerName: 'Let in', width: 116, valueFormatter: (p) => p.value ? time(p.value) : '', filter: false },
         { field: 'reference', headerName: 'Reference', width: 166 },
         { field: 'payer', headerName: 'Paid by', flex: 1.2, minWidth: 170 },
+        { headerName: '', colId: 'visit', width: 128, sortable: false, filter: false, floatingFilter: false, resizable: false, pinned: 'right', cellRenderer: visitCell },
       ],
     }),
     reports: make('reports-grid', {

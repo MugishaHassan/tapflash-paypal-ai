@@ -16,6 +16,7 @@ import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP
+from types import SimpleNamespace
 from typing import NamedTuple
 
 from django.utils import timezone
@@ -23,6 +24,7 @@ from django.utils import timezone
 from payments.checkout import build_checkout, to_paypal_amount
 from payments.methods import payment_methods
 from payments.mock import ChargeResult, MockPayments
+from payments.models import Payment
 from payments.passes import PassStore
 from payments.refunds import refund_visit
 from pictures.qr import qr_image
@@ -300,12 +302,24 @@ class Engine:
         # (and that nothing was charged) before starting again. A problem
         # report they were writing is still saved.
         out = []
-        if old.step == Step.REPORT and describes_problem(raw):
-            self._save_report(store, old, raw)
-            out.append(Text(self.msg.report_thanks()))
+        if describes_problem(raw) and (old.step == Step.REPORT or self._says_problem(old, raw)):
+            report = self._save_report(store, old, raw)
+            reviewed = self._triage_report(store, old, report, raw)
+            out.extend(reviewed or [Text(self.msg.report_thanks())])
         session, started = self._new_session(store, phone, self.msg.timed_out(old.step in PAYING_STEPS))
         session.step = Step.CHOOSE_NEED
         return [*out, *started, self._need_menu()]
+
+    def _says_problem(self, old, raw):
+        """After a timeout: does the AI read this message as a problem report about a visit?"""
+        if not self.concierge:
+            return False
+        try:
+            decision = self.concierge.decide(old, [], raw)
+        except Exception:
+            logger.exception('The AI concierge failed')
+            return False
+        return bool(decision) and decision[0] == 'report_problem'
 
     def _on_location(self, incoming, store, session):
         location = incoming.location
@@ -861,13 +875,28 @@ class Engine:
         cards = [self._access_card(access_pass) for access_pass in active]
         return [*(image.with_caption(text) if image else Text(text) for image, text in cards), *rest]
 
-    def _save_report(self, store, session, message):
+    def _visit_of(self, store, session):
+        """The paid visit a report is about: the journey's own, else the visitor's latest paid visit
+        inside the refund window (a chat that timed out must not lose the complaint)."""
         access_pass = self._pass_of(session)
+        payment = self.passes.payment_for(access_pass.reference) if access_pass else None
+        if payment is not None or not store.user_id:
+            return payment
+        since = self.clock() - timedelta(minutes=self.config.refund_window_minutes)
+        return Payment.objects.filter(
+            user_id=store.user_id, status=Payment.Status.SUCCEEDED, created_at__gte=since,
+        ).order_by('-created_at').first()
+
+    def _save_report(self, store, session, message):
+        payment = self._visit_of(store, session)
+        facility = session.restroom
+        if facility is None and payment is not None:
+            facility = SimpleNamespace(code=payment.facility_code, name=payment.facility_name)
         return records.save_report(
-            payment=self.passes.payment_for(access_pass.reference) if access_pass else None,
+            payment=payment,
             user_id=store.user_id,
             phone=session.whatsapp_phone,
-            facility=session.restroom,
+            facility=facility,
             step=session.return_step,
             message=message,
             at=self.clock(),
@@ -951,7 +980,7 @@ class Engine:
     def _triage_report(self, store, session, report, text):
         """The AI reviews a report about a paid visit and may refund it, within the rules."""
         access_pass = self._pass_of(session)
-        payment = self.passes.payment_for(access_pass.reference) if access_pass else None
+        payment = report.payment if report is not None else None
         if not (self.triage and report and payment):
             return []
         now = self.clock()
@@ -972,7 +1001,7 @@ class Engine:
         out = [Text(reply)] if reply else []
         if refund:
             out.append(Text(self.msg.refunded(refund, payment)))
-            if decision['refund'] == 'full':
+            if decision['refund'] == 'full' and access_pass is not None:
                 # The visit is given back, so its pass ends: find another restroom.
                 self.passes.end(access_pass.reference, now)
         elif decision['refund'] != 'none':

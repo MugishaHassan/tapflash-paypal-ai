@@ -18,6 +18,7 @@ from functools import partial
 from django.contrib.admin.views.decorators import staff_member_required as _staff_member_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -58,10 +59,10 @@ def _judge_limit(request):
                                       'It resets tomorrow.'}, status=429)
     return None
 
-AG_GRID = 'https://cdn.jsdelivr.net/npm/ag-grid-community@36.2.0/dist/ag-grid-community.min.js'
+AG_GRID = 'ops/vendor/ag-grid-community.min.js'  # served from this project's static files (AG Grid Community 36.2.0)
 CSP = '; '.join([
     "default-src 'none'",
-    f"script-src 'unsafe-inline' {AG_GRID}",
+    "script-src 'self' 'unsafe-inline'",
     "style-src 'unsafe-inline' https://fonts.googleapis.com",
     'font-src https://fonts.gstatic.com data:',  # AG Grid's icons are an inline font
     "img-src 'self' data:",
@@ -87,7 +88,7 @@ def dashboard(request):
     engine = default_engine()
     return _secure(render(request, 'ops/dashboard.html', {
         'bot_name': config.bot_name,
-        'ag_grid': AG_GRID,
+        'ag_grid': static(AG_GRID),
         'currency': config.paypal_currency,
         'sandbox': not config.paypal_live,
         'paypal_on': bool(engine.checkout),
@@ -281,6 +282,49 @@ def refund(request):
         logger.exception('Could not tell %s about the staff refund', payment.user_id)
     return JsonResponse({'message': f'Refunded {given.currency} {given.amount:.2f} for {payment.facility_name} '
                                     f'({given.provider_refund_id}). The user was told in the chat.'})
+
+
+@staff_member_required
+@require_POST
+def visit(request):
+    """Staff act on one visit from the payments list: "refund" a paid (captured) visit, or
+    "release" a held one, so the visitor is never charged. The user is told in the chat."""
+    if (limited := _judge_limit(request)) is not None:
+        return limited
+    config = settings.TAPFLASH
+    try:
+        body = json.loads(request.body.decode('utf-8') or '{}')
+        payment_id, action = int(body.get('payment')), str(body.get('action', ''))
+    except (ValueError, TypeError, AttributeError):
+        return JsonResponse({'error': 'Send JSON like {"payment": 12, "action": "refund"}.'}, status=400)
+    payment = Payment.objects.select_related('paypal_order').filter(pk=payment_id).first()
+    if payment is None or action not in ('refund', 'release'):
+        return JsonResponse({'error': 'Unknown visit or action.'}, status=404)
+    order = getattr(payment, 'paypal_order', None) if payment.provider == 'paypal' else None
+    held = bool(order and order.authorization_id and not order.capture_id)
+    if held != (action == 'release'):
+        return JsonResponse({'error': 'This visit is held: release it.' if held
+                             else 'Only a held visit can be released. Use Refund for a paid one.'}, status=409)
+    engine, now = default_engine(), timezone.now()
+    if not cache.add(f'ops:refund:{payment.pk}', 1, timeout=60):
+        return JsonResponse({'error': 'This visit is being refunded already.'}, status=409)
+    try:
+        given, why = staff_refund(payment=payment, report=None, share_name='full', checkout=engine.checkout,
+                                  config=config, now=now, staff_name=request.user.get_username())
+    finally:
+        cache.delete(f'ops:refund:{payment.pk}')
+    if given is None:
+        return JsonResponse({'error': f'Not done: {why}.'}, status=409)
+    AccessPass.objects.filter(payment=payment, expires_at__gt=now).update(expires_at=now)
+    word = 'released' if action == 'release' else 'refunded'
+    try:
+        outbox.notify(payment.user_id, [Text(
+            f'About your visit to {payment.facility_name}: staff {word} it. '
+            + ('You were not charged.' if action == 'release' else engine.msg.refunded(given, payment)))])
+    except Exception:
+        logger.exception('Could not tell %s about the staff action', payment.user_id)
+    return JsonResponse({'message': f'{word.capitalize()} {given.currency} {given.amount:.2f} for '
+                                    f'{payment.facility_name}. The user was told in the chat.'})
 
 
 @staff_member_required

@@ -11,6 +11,7 @@ urlpatterns = [
     path('report.json', septic_views.report_data, name='ops-report'),
     path('statement/<str:code>', septic_views.statement, name='ops-statement'),
     path('refund', views.refund, name='ops-refund'),
+    path('visit', views.visit, name='ops-visit'),
     path('cleaning', views.cleaning, name='ops-cleaning'),
     path('restroom', views.edit_restroom, name='ops-restroom'),
     path('cleaner', views.save_cleaner, name='ops-cleaner'),

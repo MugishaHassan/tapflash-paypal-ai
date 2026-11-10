@@ -160,6 +160,26 @@ class TriageTests(TestCase):
         self.assertEqual(Refund.objects.count(), 1)
         self.assertIn('already had an automatic refund', ProblemReport.objects.order_by('-id').first().staff_notes)
 
+    def test_a_complaint_after_the_chat_timed_out_still_reaches_the_paid_visit(self):
+        # Paid 45 minutes ago, the chat has timed out (30 min), the visitor now writes the complaint.
+        t, _ = ai_chat(('report_problem', {'reply': 'x'}), self.full, env={'ACCESS_MINUTES': '600'})
+        t.pay_by_card()
+        t.advance(minutes=45)
+        out = texts(t.say('The door was locked'))
+        self.assertIn('Refunded *KES', out)
+        self.assertNotIn('No paid visit', out)
+        self.assertEqual(ProblemReport.objects.get().payment, Payment.objects.get())
+        self.assertEqual(Refund.objects.count(), 1)
+
+    def test_a_complaint_more_than_two_hours_after_paying_goes_to_staff(self):
+        t, _ = ai_chat(('report_problem', {'reply': 'x'}), self.full, env={'ACCESS_MINUTES': '600'})
+        t.pay_by_card()
+        t.advance(minutes=150)
+        out = texts(t.say('The door was locked'))
+        self.assertFalse(Refund.objects.exists())
+        self.assertNotIn('Refunded', out)
+        self.assertIn('reported more than 120 minutes', ProblemReport.objects.get().staff_notes)
+
     def test_a_late_report_is_not_refunded_automatically(self):
         t, _ = ai_chat(self.full, env={'ACCESS_MINUTES': '600'})
         t.pay_by_card()

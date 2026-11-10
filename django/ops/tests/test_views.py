@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from bot.models import Conversation, OutgoingReply, ProblemReport
-from payments.models import AccessPass, Payment, Refund
+from payments.models import AccessPass, PayPalOrder, Payment, Refund
 
 
 class StaffRefundTests(TestCase):
@@ -56,6 +56,39 @@ class StaffRefundTests(TestCase):
         row = self.client.get('/ops/data').json()['reports'][0]
         self.assertFalse(row['refundable'])
         self.assertEqual(row['refundBy'], 'Staff')
+
+    def visit(self, action, payment=None):
+        return self.client.post('/ops/visit', json.dumps({'payment': (payment or self.payment).pk, 'action': action}),
+                                content_type='application/json')
+
+    def test_staff_can_refund_a_paid_visit_from_the_payments_list(self):
+        response = self.visit('refund')
+        self.assertEqual(response.status_code, 200, response.content)
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
+        self.assertEqual(Refund.objects.get().decided_by, Refund.DecidedBy.STAFF)
+        self.assertFalse(AccessPass.objects.active().exists())
+        self.assertIn('Refunded', json.dumps(OutgoingReply.objects.get(user_id='web:u1').replies))
+
+    def test_release_is_only_for_a_held_visit(self):
+        self.assertEqual(self.visit('release').status_code, 409)
+        self.assertEqual(Refund.objects.count(), 0)
+
+    def test_staff_can_release_a_held_visit_and_the_user_is_told_no_charge(self):
+        self.payment.provider, self.payment.reference = 'paypal', 'ORDERHELD1'
+        self.payment.save()
+        PayPalOrder.objects.create(order_id='ORDERHELD1', user_id='web:u1', facility_code='city-market',
+                                   facility_name='City Market', local_total=100, local_currency='KES', amount=1,
+                                   approve_url='https://example.com/x', status='completed',
+                                   authorization_id='AUTH1', payment=self.payment)
+        row = next(p for p in self.client.get('/ops/data').json()['payments'] if p['id'] == self.payment.pk)
+        self.assertEqual(row['status'], 'held')
+        self.assertEqual(self.visit('refund').status_code, 409, 'a held visit cannot be "refunded"')
+        response = self.visit('release')
+        self.assertEqual(response.status_code, 200, response.content)
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
+        self.assertIn('You were not charged', json.dumps(OutgoingReply.objects.get(user_id='web:u1').replies))
 
     def test_staff_only(self):
         self.client.logout()
@@ -151,3 +184,17 @@ class PeopleTests(TestCase):
         self.assertEqual(self.post('/ops/attendant', {'action': 'remove', 'id': attendant.pk}).status_code, 200)
         self.assertFalse(User.objects.get(username='amina').is_active)
         self.assertEqual(self.post('/ops/attendant', {'username': 'amina', 'restroom': 'city-market'}).status_code, 409)
+
+
+class LocalLibrariesTests(TestCase):
+    def test_the_dashboard_and_door_check_load_their_scripts_from_this_site(self):
+        staff = User.objects.create_user('ops2', password='pw-for-tests', is_staff=True)
+        from restrooms.models import Restroom
+        Restroom.objects.create(code='r1', name='R1', latitude=-1.28, longitude=36.82)
+        self.client.force_login(staff)
+        for url, name in [('/ops/', 'ops/vendor/ag-grid-community.min.js'), ('/gate/', 'ops/vendor/jsQR.js')]:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, (url, response.get('Location')))
+            self.assertContains(response, name)
+            self.assertNotContains(response, 'cdn.jsdelivr.net')
+            self.assertNotIn('jsdelivr', response['Content-Security-Policy'])

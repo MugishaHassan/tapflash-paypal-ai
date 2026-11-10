@@ -52,7 +52,8 @@ class CleaningCheck(models.Model):
     decided_by = models.CharField(max_length=80, blank=True, help_text='"ai", or the staff member.')
     payout = models.OneToOneField(Payout, on_delete=models.SET_NULL, null=True, blank=True,
                                   related_name='cleaning_check')
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now, help_text='When the photo was sent.')
+    decided_at = models.DateTimeField(null=True, blank=True, help_text='When it was approved or rejected.')
 
     class Meta:
         indexes = [models.Index(fields=['cleaner', 'created_at'])]

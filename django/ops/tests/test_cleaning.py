@@ -225,3 +225,28 @@ class PhotoCopyTests(TestCase):
 
     def test_a_different_photo_goes_through(self):
         self.assertIn('Approved!', self.send((self.photos / '5.jpg').read_bytes(), FakeJudge(verdict(5))))
+
+
+class JudgeSamplePhotoTests(TestCase):
+    """The judges' page sends a sample photo as the demo cleaner; "sent before" is per judge session."""
+
+    def setUp(self):
+        restroom = Restroom.objects.create(code='nbi-kenyatta-ave', name='Kenyatta Avenue', latitude=-1.28,
+                                           longitude=36.82)
+        Cleaner.objects.create(name='Web chat tester', phone='+254712345678', payout_email='t@example.com',
+                               restroom=restroom)
+
+    def send(self, client, kind='clean'):
+        return client.post(f'/judges/sample-photo/{kind}').json()
+
+    def test_a_photo_is_refused_the_second_time_only_for_the_same_judge(self):
+        from django.test import Client
+        first, second = Client(), Client()
+        self.assertNotIn('sent before', self.send(first)['text'])
+        self.assertIn('sent before', self.send(first)['text'])
+        self.assertNotIn('sent before', self.send(second)['text'], 'another judge can send the same sample')
+        self.assertEqual(CleaningCheck.objects.count(), 2)
+
+    def test_an_unknown_sample_is_not_found(self):
+        from django.test import Client
+        self.assertEqual(Client().post('/judges/sample-photo/other').status_code, 404)

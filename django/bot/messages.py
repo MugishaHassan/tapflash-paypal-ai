@@ -120,7 +120,7 @@ class Messages:
         return 'How would you like to pay?'
 
     def method_fee(self, method):
-        return f'{method.fee_percent}% fee' if method.fee_percent else 'No fees'
+        return f'TapFlash service fee {method.fee_percent}%' if method.fee_percent else 'No fees'
 
     def ask_phone(self, method):
         return f'Enter your {method.label} number, for example 0712 345 678.'

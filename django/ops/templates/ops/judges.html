@@ -80,7 +80,7 @@
     <div>
       <h1>Try TapFlash in five minutes</h1>
       <p>In Nairobi, a clean public restroom that is open when you need it is hard to find, and the people who keep restrooms clean are often paid late, in cash. TapFlash is a WhatsApp bot that finds the restroom, takes the payment with PayPal, refunds failed visits, and pays operators and cleaners as soon as their work is approved.</p>
-      <p>Everything below runs live on this server. Do the three stops in order. Stop 1 is two separate visits, because one payment can only end one way: either the door opens and the hold is charged, or the visit fails and the hold is released.</p>
+      <p>Everything below runs live on this server. Do the four stops in order. Stop 1 is two separate visits, because one payment can only end one way: either the door opens and the hold is charged, or the visit fails and the hold is released.</p>
       <div class="buyer">
         <b>PayPal sandbox buyer, for stop 1</b>
         {% if buyer_email %}<dl class="creds">
@@ -114,6 +114,7 @@
         <ol>
           <li>Start a new visit and pay again, the same way. Do not scan this one.</li>
           <li>Write <code>The door was locked</code>. Gemini reviews it and the code releases the hold: you are never charged.</li>
+          <li class="muted">Limits the code enforces on this server: an automatic refund only within {{ refund_window_minutes }} minutes of paying, and at most {{ refund_per_day }} per person per day{% if refund_per_day > 1 %} (raised from the default of 1 so judges can test more than once){% endif %}. Staff can still refund or release from the dashboard.</li>
         </ol>
         <a class="btn" href="/" target="_blank" rel="noopener">Open the chat</a>
       </div>
@@ -135,14 +136,29 @@
       <div class="shot narrow"><img src="{% static 'ops/judges/door.jpg' %}" alt="The door check on the attendant's phone: Let them in" width="420" height="165"></div>
     </section>
 
-    <section class="stop wide">
+    <section class="stop wide" id="cleaner-photo">
       <div class="n">3</div>
+      <div>
+        <h2>Send a cleaner's photo</h2>
+        <ol>
+          <li>Press the button. It sends the restroom's own demo photo as the demo cleaner, <b>Kenyatta Avenue</b>. Gemini checks it against the restroom's own photo and scores it.</li>
+          <li>A clean one is paid a bonus with PayPal Payouts. A doubtful one waits for staff in the dashboard (stop 4). Press it twice and the second one is refused as "sent before"; other judges' photos do not count.</li>
+        </ol>
+        <form id="sample-form" onsubmit="return false">{% csrf_token %}
+          <button class="btn" type="button" data-kind="clean">Send a sample clean photo</button>
+        </form>
+        <p id="sample-result" role="status" aria-live="polite" style="margin-top:12px"></p>
+      </div>
+    </section>
+
+    <section class="stop wide">
+      <div class="n">4</div>
       <div>
         <h2>Run it as the operator</h2>
         <ol>
           <li>Your two visits: one charged after the door check, one released after your complaint, with Gemini's review.</li>
           <li>Tick restroom operators and pay their share with <b>PayPal Payouts</b>.</li>
-          <li>Under Cleaning bonuses, approve a cleaner's photo: PayPal pays them at once.</li>
+          <li>Under Cleaning bonuses, see your photo and approve a waiting one: PayPal pays them at once.</li>
           <li>Back in the chat, search again: that restroom now says <b>cleaned 1 min ago</b> and comes first when you ask for the cleanest. The cleaner's checked work is what the next visitor sees.</li>
         </ol>
         {% if one_click %}<form method="post" action="{% url 'judge-enter' 'ops' %}">{% csrf_token %}<button class="btn" type="submit">Open the dashboard</button></form>
@@ -167,5 +183,24 @@
 
   <footer>Built by Hassan Mugisha in Kampala for the PayPal AI Hackathon. The source code and setup instructions are in the GitHub repository linked from the submission.</footer>
 </div>
+<script>
+(function () {
+  var form = document.getElementById('sample-form');
+  var out = document.getElementById('sample-result');
+  if (!form) return;
+  form.addEventListener('click', function (event) {
+    var button = event.target.closest('button[data-kind]');
+    if (!button) return;
+    var token = form.querySelector('input[name=csrfmiddlewaretoken]').value;
+    form.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+    out.textContent = 'Checking the photo with Gemini…';
+    fetch('/judges/sample-photo/' + button.dataset.kind, { method: 'POST', headers: { 'X-CSRFToken': token }, credentials: 'same-origin' })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Something went wrong.'); return j; }); })
+      .then(function (j) { out.textContent = j.text; })
+      .catch(function (e) { out.textContent = 'Could not send the photo: ' + e.message; })
+      .then(function () { form.querySelectorAll('button').forEach(function (b) { b.disabled = false; }); });
+  });
+})();
+</script>
 </body>
 </html>

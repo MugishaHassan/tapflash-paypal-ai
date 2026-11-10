@@ -8,6 +8,7 @@ operators' dashboard comes from the same code a real visitor goes through.
     python manage.py seed_demo            # today's visits
     python manage.py seed_demo --reset    # start again from an empty demo
 """
+import hashlib
 from dataclasses import replace
 from datetime import datetime, time, timedelta
 from io import StringIO
@@ -24,7 +25,7 @@ from bot.ai.gemini import build_gemini
 from bot.engine import Engine, Incoming
 from bot.handler import handle_message
 from bot.models import Conversation, OutgoingReply, ProblemReport
-from ops.cleaning import check_photo
+from ops.cleaning import pay_bonus, photo_look
 from ops.models import Cleaner, CleaningCheck
 from payments.models import AccessPass, Payment, PayPalOrder, Payout, Refund
 from restrooms.geo import Location
@@ -57,12 +58,18 @@ VISITS = [
 ]
 
 
-# Sample cleaners (inactive, so no real WhatsApp number can match them) and the
-# photo each sends. Gemini reviews them when a key is set; without one they wait for staff on /ops/.
+# Sample cleaners (inactive, so no real WhatsApp number can match them), the restroom each cleans, and
+# one sample cleaning check each. The rows are written directly, not judged live, so they always make
+# sense: a clean one approved and paid, one waiting for staff, one not approved. Each uses the
+# restroom's own demo photo and its note starts with "Sample row".
+# (restroom, name, phone, email, photo, status, score, note)
 CLEANERS = [
-    ('nbi-kenyatta-ave', 'Wanjiru', '+254700000901', 'wanjiru.cleaner@example.com', '3.jpg'),
-    ('nbi-city-market', 'Otieno', '+254700000902', 'otieno.cleaner@example.com', '1.jpg'),
-    ('nbi-railways', 'Achieng', '+254700000903', 'achieng.cleaner@example.com', '5.jpg'),
+    ('nbi-kenyatta-ave', 'Wanjiru', '+254700000901', 'wanjiru.cleaner@example.com', '1.jpg',
+     'approved', 5, 'Sample row. Floor, sinks and toilets are clean.'),
+    ('nbi-city-market', 'Otieno', '+254700000902', 'otieno.cleaner@example.com', '2.jpg',
+     'review', 3, 'Sample row. Mostly clean; the floor near the door is still wet. A supervisor decides.'),
+    ('nbi-railways', 'Achieng', '+254700000903', 'achieng.cleaner@example.com', '5.jpg',
+     'rejected', 1, 'Sample row. Sinks and floor still dirty. Not approved.'),
 ]
 
 
@@ -165,16 +172,23 @@ class Command(BaseCommand):
         if demo_email and tester.payout_email != demo_email:
             tester.payout_email = demo_email
             tester.save(update_fields=['payout_email'])
-        judge = CleaningJudge(build_gemini(config)) if use_ai and build_gemini(config) else None
-        for number, (code, name, phone, email, photo) in enumerate(CLEANERS):
+        for number, (code, name, phone, email, photo, status, score, note) in enumerate(CLEANERS):
             cleaner, _ = Cleaner.objects.update_or_create(phone=phone, defaults={
                 'name': name, 'payout_email': settings.TAPFLASH.demo_payout_email or email, 'restroom': Restroom.objects.get(code=code), 'is_active': False,
             })
             if cleaner.checks.exists() or not (PHOTOS / photo).exists():
                 continue
-            check_photo(cleaner=cleaner, user_id=f'demo:cleaner-{number}', channel='web',
-                        photo=(PHOTOS / photo).read_bytes(), mimetype='image/jpeg', judge=judge, checkout=None,
-                        config=config, now=moment - timedelta(minutes=17 * number))
+            at = moment - timedelta(minutes=17 * (number + 1))
+            data = (PHOTOS / photo).read_bytes()
+            check = CleaningCheck.objects.create(
+                cleaner=cleaner, restroom=cleaner.restroom, user_id=f'demo:cleaner-{number}', channel='web',
+                photo=data, photo_type='image/jpeg', photo_hash=hashlib.sha256(data).hexdigest(),
+                photo_look=photo_look(data), status=status, score=score, ai_note=note,
+                decided_by='ai' if status != 'review' else '', created_at=at,
+                decided_at=at if status != 'review' else None,
+            )
+            if status == 'approved':
+                pay_bonus(check, checkout=None, config=config, now=at)
 
     def reset(self):
         """Deletes only demo data: visits by demo users, the sample cleaners' checks, and payouts that
