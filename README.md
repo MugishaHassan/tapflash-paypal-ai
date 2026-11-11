@@ -141,6 +141,15 @@ payments, refunds and payout statuses flash in as they happen (row ids, cell fla
 row, floating filters, CSV export and each viewer's saved column layout; AG Grid Community only). Reports the AI
 left for staff get a **Refund** button there, and the user is told in the chat.
 
+**Studio** (`/ops/studio/`) is an **AG Studio** page where operators build their own view of the same data: drag
+widgets, change them, add new ones, and click a bar or a restroom to filter the rest. It adds three custom widgets
+written for TapFlash ([studio/src/widgets.jsx](studio/src/widgets.jsx)): *Money in motion* (payments by PayPal
+state), *Proof of clean* (the latest cleaning photos with Gemini's score and the bonus) and *Refund watch* (flags
+a restroom when too many visits are refunded). Each widget asks Studio for its data through the fields mapped to
+it, so page filters and cross-filters apply. The theme is in [studio/src/theme.js](studio/src/theme.js). The built
+bundle is committed, so the server needs no Node; to rebuild it: `cd studio && npm install && npm run build`.
+AG Studio runs here without a licence key, which shows its trial watermark.
+
 **The attendant checks visitors in at the door.** On their phone, the restroom attendant opens `/gate/`
 (their own login, one restroom) and scans the visitor's access QR code with the camera, or types the
 6-digit code. The server answers **Let them in** only for a paid, unrefunded pass for this restroom that is

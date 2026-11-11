@@ -19,3 +19,7 @@ records/
 deploy/
 
 # Private hackathon notes (research about judges, plans): never public
+
+# Studio build
+studio/node_modules/
+studio/fixture/

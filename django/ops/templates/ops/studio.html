@@ -1,0 +1,26 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio · {{ bot_name }} operators</title>
+<link rel="icon" href="{% static 'ops/brand/tapflash-mark.svg' %}">
+<link rel="stylesheet" href="{% static 'ops/studio/studio.css' %}">
+<link rel="stylesheet" href="{% static 'ops/studio-page.css' %}">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="{% url 'ops-dashboard' %}">&larr; Dashboard</a>
+  <div class="heading">
+    <h1>Studio</h1>
+    <p>Build your own view of visits, PayPal money and cleaning checks. The data is the same as on the dashboard and refreshes every minute.</p>
+  </div>
+  {% if sandbox %}<span class="pill">PayPal sandbox: test money</span>{% endif %}
+</header>
+<main>
+  <div id="studio-root" data-url="{% url 'ops-data' %}" data-currency="{{ currency }}"></div>
+  <noscript>This page needs JavaScript.</noscript>
+</main>
+<script type="module" src="{% static 'ops/studio/studio.js' %}"></script>
+</body>
+</html>

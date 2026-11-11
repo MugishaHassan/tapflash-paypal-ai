@@ -261,6 +261,7 @@
       <a href="#income"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Income reports</a>
       <a href="#septic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v13H4zM8 6V3h8v3M8 12h8"/></svg>Septic tanks</a>
       <a href="#payouts"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>Payouts sent</a>
+      <a href="{% url 'ops-studio' %}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg>Studio</a>
     </nav>
     <div class="side-foot">
       <span class="chip{% if paypal_on %} on{% endif %}"><span class="dot"></span>{% if paypal_on %}PayPal {% if sandbox %}sandbox{% else %}live{% endif %}{% else %}PayPal off: simulated{% endif %}</span>
