@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.dashboard, name='ops-dashboard'),
     path('data', views.data, name='ops-data'),
     path('studio/', studio_views.studio, name='ops-studio'),
+    path('studio/assistant', studio_views.assistant, name='ops-studio-assistant'),
     path('payout', views.payout, name='ops-payout'),
     path('sensor-sandbox', septic_views.sensor_sandbox, name='ops-sensor-sandbox'),
     path('septic.json', septic_views.septic_data, name='ops-septic'),

@@ -18,7 +18,7 @@
   {% if sandbox %}<span class="pill">PayPal sandbox: test money</span>{% endif %}
 </header>
 <main>
-  <div id="studio-root" data-url="{% url 'ops-data' %}" data-currency="{{ currency }}"></div>
+  <div id="studio-root" data-url="{% url 'ops-data' %}" data-currency="{{ currency }}"{% if ai_on %} data-assistant="{% url 'ops-studio-assistant' %}" data-csrf="{{ csrf_token }}"{% endif %}></div>
   <noscript>This page needs JavaScript.</noscript>
 </main>
 <script type="module" src="{% static 'ops/studio/studio.js' %}"></script>

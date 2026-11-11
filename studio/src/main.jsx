@@ -1,7 +1,9 @@
 // TapFlash operators' analytics, built with AG Studio. The page gives the element and the data URL.
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { AgStudioAiModule, createAiHarness } from 'ag-studio';
 import { AgStudio, AgStudioProvider } from 'ag-studio-react';
+import { geminiAdapter } from './gemini-adapter';
 import { buildData } from './data';
 import { initialReport } from './report';
 import { tapflashTheme } from './theme';
@@ -10,17 +12,32 @@ import './styles.css';
 
 const SAVED = 'tapflash-studio-report-v2';
 
+// Suggestions shown in a new conversation with the assistant.
+const STARTERS = [
+  { label: 'Refunds by restroom', prompt: 'Add a chart of refunded visits by restroom.' },
+  { label: 'Which restroom needs a look?', prompt: 'Which restroom has the highest share of refunded visits, and how many visits is that?' },
+  { label: 'Cleaning scores', prompt: 'Add a chart of the average Gemini cleaning score by restroom.' },
+  { label: 'Summarise this page', prompt: 'Summarise what this page shows and what stands out.' },
+];
+const AI_MODULES = [AgStudioAiModule];
+
 function load() {
   try { return JSON.parse(localStorage.getItem(SAVED)) || initialReport; } catch { return initialReport; }
 }
 
-function App({ url, currency }) {
+function App({ url, currency, assistant, csrfToken }) {
   const [raw, setRaw] = useState(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState('view');
   const [api, setApi] = useState(null);
   const [initialState] = useState(load);
   const context = useMemo(() => ({ currency }), [currency]);
+  // The assistant runs on Gemini through this site's own endpoint. Read once, when Studio is created.
+  const ai = useMemo(() => {
+    if (!assistant) return undefined;
+    const adapter = geminiAdapter({ endpoint: assistant, csrfToken });
+    return ({ api: studioApi }) => createAiHarness(studioApi, { adapter, promptStarters: STARTERS });
+  }, [assistant, csrfToken]);
 
   useEffect(() => {
     const get = () => fetch(url, { credentials: 'same-origin' })
@@ -50,7 +67,7 @@ function App({ url, currency }) {
               <button type="button" className="tf-btn tf-btn-main" onClick={save}>Save</button></>}
       </div>
       <div className="tf-studio-canvas">
-        <AgStudioProvider>
+        <AgStudioProvider modules={ai ? AI_MODULES : undefined}>
           <AgStudio
             style={{ height: '100%', width: '100%' }}
             theme={tapflashTheme}
@@ -58,6 +75,7 @@ function App({ url, currency }) {
             data={data}
             widgets={widgets}
             context={context}
+            ai={ai}
             initialState={initialState}
             mode={mode}
             onApiReady={(event) => setApi(event.api)}
@@ -69,4 +87,5 @@ function App({ url, currency }) {
 }
 
 const root = document.getElementById('studio-root');
-if (root) createRoot(root).render(<App url={root.dataset.url || '/ops/data'} currency={root.dataset.currency || 'USD'} />);
+if (root) createRoot(root).render(<App url={root.dataset.url || '/ops/data'} currency={root.dataset.currency || 'USD'}
+  assistant={root.dataset.assistant} csrfToken={root.dataset.csrf} />);
